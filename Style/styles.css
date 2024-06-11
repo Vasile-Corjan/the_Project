@@ -141,7 +141,6 @@ section.info-grid {
     margin-top: 160px;
     padding-bottom: 96px;
     
-
 }
 .grid-card {
     border: 1px solid #e8e7eb;
@@ -229,7 +228,11 @@ footer{
     padding-bottom: 1rem;
     background: #171321;
     color: #FFFFFF;
-    border-top: 1.5px solid darkgray;
+    border-top: 1.5px solid transparent;
+    background-image: linear-gradient(to right, transparent, #FFFFFF, transparent);
+    background-size: 100% 1.5px;
+    background-repeat: no-repeat;
+    background-position: top;
 }
 
 .footer-right{
