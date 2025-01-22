@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="styles/styles.css">
+    <title>Vite App</title>
+  </head>
+  <body>
+    <!-- <div id="mySidePanel" class="side-panel">
+      <h2>IFC Panel</h2>
+      <div id="panelContent"> -->
+          <!-- Content will be populated by JavaScript -->
+      <!-- </div>
+      <div id="ifc-properties-container">
+        <ul id="ifc-properties-tree"></ul>
+      </div>
+    </div> -->
+    <div id="container">
+      <div id="camera-view">
+        <button id="perspective-view">Perspective</button>
+        <button id="ortho-view">Orthographic</button>
+        <button id="fit">Fit</button>
+      </div>
+      <nav>
+        <div class="navbar" id="bottom-navbar">
+          <ul>
+            <li>
+              <button type="button" class="home" id="reset-camera">
+                <svg xmlns="http://www.w3.org/2000/svg" width="2.5em" height="2.5em" viewBox="0 0 1664 1312"><path fill="white" d="M1408 768v480q0 26-19 45t-45 19H960V928H704v384H320q-26 0-45-19t-19-45V768q0-1 .5-3t.5-3l575-474l575 474q1 2 1 6m223-69l-62 74q-8 9-21 11h-3q-13 0-21-7L832 200L140 777q-12 8-24 7q-13-2-21-11l-62-74q-8-10-7-23.5T37 654L756 55q32-26 76-26t76 26l244 204V64q0-14 9-23t23-9h192q14 0 23 9t9 23v408l219 182q10 8 11 21.5t-7 23.5"/></svg>
+              </button>
+            </li>
+              <li>
+              <button id="uploadlink" type="button">
+                <svg xmlns="http://www.w3.org/2000/svg" width="2.5em" height="2.5em" viewBox="0 0 16 16"><g fill="white"><path d="M7 4.174V11h2V4.174l2.608 2.236l1.302-1.518L8 .682l-4.91 4.21L4.392 6.41z"/><path d="M3 13v-3H1v3a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-3h-2v3z"/></g></svg>
+              </button>
+              </li>
+            </li>
+            <li>
+              <button id="dim">
+              <svg xmlns="http://www.w3.org/2000/svg" width="2.5em" height="2.5em" fill="white" class="bi bi-rulers" viewBox="0 0 16 16"><path d="M1 0a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h5v-1H2v-1h4v-1H4v-1h2v-1H2v-1h4V9H4V8h2V7H2V6h4V2h1v4h1V4h1v2h1V2h1v4h1V4h1v2h1V2h1v4h1V1a1 1 0 0 0-1-1z"/></svg>
+              </button>
+            </li>
+            <li>
+              <button id="clip">
+                <svg xmlns="http://www.w3.org/2000/svg" width="2.5em" height="2.5em" fill="white" class="bi bi-scissors" viewBox="0 0 16 16"><path d="M3.5 3.5c-.614-.884-.074-1.962.858-2.5L8 7.226 11.642 1c.932.538 1.472 1.616.858 2.5L8.81 8.61l1.556 2.661a2.5 2.5 0 1 1-.794.637L8 9.73l-1.572 2.177a2.5 2.5 0 1 1-.794-.637L7.19 8.61zm2.5 10a1.5 1.5 0 1 0-3 0 1.5 1.5 0 0 0 3 0m7 0a1.5 1.5 0 1 0-3 0 1.5 1.5 0 0 0 3 0"/></svg>
+              </button>
+            </li>
+            <li>
+              <button type="button" id="delete-model">
+                <svg xmlns="http://www.w3.org/2000/svg" width="2.5em" height="2.5em" viewBox="0 0 24 24"><path fill="white" d="M17 6h5v2h-2v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V8H2V6h5V3a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1zm1 2H6v12h12zm-9 3h2v6H9zm4 0h2v6h-2zM9 4v2h6V4z"/></svg>
+              </button>
+            </li>
+          </ul>
+        </div>
+      </nav>
+    </div>
+    <script type="module" src="/main.js"></script>
+  </body>
+</html>
