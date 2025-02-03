@@ -1,5 +1,5 @@
 {
-  "name": "test",
+  "name": "frontend_src",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -9,15 +9,16 @@
     "preview": "vite preview"
   },
   "devDependencies": {
-    "vite": "^5.3.1"
+    "vite": "^6.0.5"
   },
   "dependencies": {
     "@thatopen/components": "^2.4.3",
     "@thatopen/components-front": "^2.4.3",
     "@thatopen/ui": "^2.4.1",
     "@thatopen/ui-obc": "^2.4.1",
-    "stats.js": "0.17.0",
-    "three": "0.160.1",
+    "axios": "^1.7.9",
+    "jwt-decode": "^4.0.0",
+    "three": "^0.160.1",
     "web-ifc": "^0.0.66"
   }
 }
