@@ -1,0 +1,22 @@
+@media (min-width: 1025px){
+    .gallery-scroll{
+        padding: 64px 96px 96px;
+    }
+}
+
+@media (min-width: 768px) {
+    .gallery-scroll{
+        display: flex;
+        justify-content: center;
+    }
+}
+@media (min-width: 768px) {
+    .info-row{
+        flex-basis: 0;
+        flex-grow: 1;
+        max-width: 100%;
+        min-height: 1px;
+        position: relative;
+        width: 100%;
+    }
+}
