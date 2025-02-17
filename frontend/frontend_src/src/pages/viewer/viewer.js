@@ -7,7 +7,7 @@ import * as WEBIFC from "web-ifc";
 //import Stats from "stats.js"
 import { authenticatedFetch } from "../../api";
 
-//const response = await authenticatedFetch('http://localhost:8000/api/protected-endpoint')
+
 
 BUI.Manager.init();
 
