@@ -2,12 +2,14 @@ import Home from "./pages/home";
 import Register from "./pages/register";
 import SignIn from "./pages/signin";
 import Viewer from "./pages/viewer/index";
+import Profile from "./pages/profile";
 
 const routes = {
   "/": Home,
   "/signin": SignIn,
   "/signup": Register,
   "/viewer": Viewer,
+  "/profile": Profile,
 }
 
 const cache = {};

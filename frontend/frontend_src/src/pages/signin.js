@@ -30,7 +30,7 @@ export async function SignIn() {
             if (response.ok) {
               localStorage.setItem('access_token', data.access);
               localStorage.setItem('refresh_token', data.refresh);
-              window.location.href = '/viewer';
+              window.location.href = '/profile';
             } else {
               alert('Sign In failed. wrong credentials');
             }
