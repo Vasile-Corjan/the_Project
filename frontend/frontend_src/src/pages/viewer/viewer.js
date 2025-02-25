@@ -23,12 +23,15 @@ world.scene = new OBC.SimpleScene(components);
 world.renderer = new OBCF.PostproductionRenderer(components,container);
 world.camera = new OBC.OrthoPerspectiveCamera(components);
 
-const {postproduction} = world.renderer;
-postproduction.enabled = true;
+
 
 components.init();
 world.camera.controls.setLookAt(10, 10, 10, 0, 0, 0);
 world.scene.setup();
+
+
+
+
 
 container.addEventListener("resize", () => {
   rendererComponent.resize();
@@ -66,8 +69,23 @@ world.scene.three.background = color;
 const grids = components.get(OBC.Grids);
 const grid = grids.create(world);
 
-postproduction.customEffects.excludedMeshes.push(grid.three);
+const { postproduction } = world.renderer;
+postproduction.enabled = true; // Enables post-processing effects
+postproduction.customEffects.excludedMeshes.push(grid.three) // Excludes the grid from post-processing
+
+// Ambient Occlusion settings
 const ao = postproduction.n8ao.configuration;
+ao.aoRadius = 5.0; // Radius of AO effect (default: 5.0)
+ao.intensity = 2.0; // Strength of the AO effect (default: 1.0)
+ao.denoiseSamples = 8; // Number of samples for denoising (default: 8)
+ao.denoiseRadius = 12; // Radius for denoising (default: 12)
+
+// Gamma correction settings
+postproduction.setPasses({gamma: false,
+  custom: false,
+  ao: true
+})
+
 
 // HIGHLIGHTER
 const highlighter = components.get(OBCF.Highlighter);
@@ -77,12 +95,6 @@ highlighter.setup({world,
   selectEnabled:true, 
   selectionColor: new THREE.Color("#F59716")}); // change the hover color and edit other settings
 highlighter.multiple = "ctrlKey";
-
-
-
-// CULLERS
-const cullers = components.get(OBC.Cullers);
-const culler = cullers.create(world);
 
 
 // IFC LOADER
@@ -129,6 +141,10 @@ fragments.onFragmentsLoaded.add( async (model) => {
   world.scene.three.add(model);
 })
 
+// CULLERS
+const cullers = components.get(OBC.Cullers);
+const culler = cullers.create(world);
+
 
 // Model list
 function addRowGroup(model) {
@@ -163,7 +179,7 @@ function addRowGroup(model) {
 
   panel.appendChild(div);
 }
-addRowGroup();
+//addRowGroup();
 
 const indexer = components.get(OBC.IfcRelationsIndexer);
 fragments.onFragmentsLoaded.add(async (model) => {
@@ -223,12 +239,21 @@ const [relationsTree] = CUI.tables.relationsTree({
   models: [],
 });
 
+const [modelList] = CUI.tables.modelsList({
+  components,
+  tags: {schema: true, viewDefinition: false },
+  actions: {download: false, visibility: true, dispose: true},
+});
+
 relationsTree.preserveStructureOnFilter = false;
 
 const panel = BUI.Component.create(() => {
 
   return BUI.html`
    <bim-panel label="Relations Tree">
+   <bim-panel-section icon= "mage:box-3d-fill" label="Loaded Models">
+    ${modelList}
+    </bim-panel-section>
     <bim-panel-section label="Model Tree">
       ${relationsTree}
     </bim-panel-section>
@@ -243,7 +268,7 @@ app.layouts = {
     "propertiesPanel"
     "panel"
     `,
-    elements: { propertiesPanel, panel},
+    elements: {propertiesPanel, panel},
   },
 };
 app.style.width = "25rem";
@@ -272,15 +297,16 @@ fragments.onFragmentsLoaded.add((model) => {
 });
  
 // RAYCASTER & CLIPPER
-const casters = world.components.get(OBC.Raycasters);
-casters.get(world);
+const casters = components.get(OBC.Raycasters);
+const caster = casters.get(world);
+caster.enabled = true
 
 const clipper = components.get(OBC.Clipper);
 
 clipper.Type = OBCF.EdgesPlane;
 const edges = components.get(OBCF.ClipEdges);
 const blackLine = new THREE.LineBasicMaterial({color: "black"});
-const clipperColor = new THREE.Color("#F5DB69");
+const clipperColor = new THREE.Color("#FBF0C3");
 edges.styles.create("Outline",world.meshes,world,blackLine);
 
 document.getElementById("clip").addEventListener('click', () => {
@@ -316,45 +342,45 @@ const dimensions = components.get(OBCF.LengthMeasurement);
 dimensions.world = world;
 dimensions.enabled = false;
 
+const dimensionLine = OBCF.SimpleDimensionLine
+dimensionLine.units = "mm"
+dimensionLine.scale = 0.001
+
 document.getElementById("dim").addEventListener('click', () =>{
   dimensions.enabled = true;
   if (dimensions.enabled){
     highlighter.enabled = false
+    container.onclick = () => {
+      const result = caster.castRay(fragments.meshes)
+      if (!world.camera.controls.active && result !== null) {
+        dimensions.create();
+        dimensions.snapDistance = 0.1;
+        const dimColor = new THREE.Color("red");
+        dimensions.color = dimColor;
+        dimensions.endCreation();
+    
+        if (dimensions.list.length > 0 && !document.getElementById("deleting-dimensions")) {
+          const deleteDimension = document.createElement("button");
+          deleteDimension.id = "deleting-dimensions";
+          deleteDimension.textContent = "Delete All Dimensions";
+          document.getElementById("container").appendChild(deleteDimension);
+          
+          deleteDimension.addEventListener("click", () => {
+            dimensions.deleteAll(); 
+            if (dimensions.list.length === 0) {
+              dimensions.enabled = false;
+            }
+            document.getElementById("container").removeChild(deleteDimension);
+          });
+        };
+      }
+    };
   }
 });
 
-const dimensionLine = OBCF.SimpleDimensionLine
-
-dimensionLine.units = "mm"
-dimensionLine.scale = 0.001
 
 
 
-
-
-container.onclick = () => {
-  dimensions.create();
-  dimensions.snapDistance = 0.2;
-  const dimColor = new THREE.Color("red");
-  dimensions.color = dimColor;
-  dimensions.endCreation();
-
-  if (dimensions.list.length > 0 && !document.getElementById("deleting-dimensions")) {
-    const deleteDimension = document.createElement("button");
-    deleteDimension.id = "deleting-dimensions";
-    deleteDimension.textContent = "Delete All Dimensions";
-    document.getElementById("container").appendChild(deleteDimension);
-    
-    deleteDimension.addEventListener("click", () => {
-      dimensions.deleteAll();
-      console.log(dimensions.list.length)  
-      if (dimensions.list.length === 0) {
-        dimensions.enabled = false;
-      }
-      document.getElementById("container").removeChild(deleteDimension);
-    });
-  }
-};
 
 
 
@@ -362,8 +388,6 @@ container.onclick = () => {
 window.onkeydown = (event) => {
   if (event.code === "Escape") {
     dimensions.cancelCreation();
-    highlighter.enabled = true;
-    console.log(dimensions.components)
   };
 };
 
@@ -371,9 +395,16 @@ window.onkeydown = (event) => {
 // THIS DELETES THE MODEL FROM THE MEMORY 
 // Dispose
 
+fragments.onFragmentsLoaded.add(() => {
+  const list_Models = []
+  list_Models.push(fragments)
+})
+
 function disposeFragments() {
-  const loadedModels = fragments.groups.get(uuid) 
-  fragments.disposeGroup(loadedModels)
+  for (const loadedModel of fragments.groups){
+    let group = fragments.groups.get(loadedModel[0])
+    fragments.disposeGroup(group)
+  }
 }
 document.getElementById('delete-model').addEventListener('click', () => {
   disposeFragments();
