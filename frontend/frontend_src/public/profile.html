@@ -7,9 +7,34 @@
     <title>Profile</title>
 </head>
 <body>
+  <header class="appHeader">
+    <div class="appHeader-bar">
+      <div class="appHeader-bar-left">
+        <a href="/">LOGO</a>
+      </div>
+      <div class="appHeader-bar-right">
+        <div class="appHeader-user">
+          <img src="./static/avatar-user.png" alt="" sizes="32" height="32" width="32">
+        </div>
+      </div>
+    
+      <nav class="nav">
+        <ul>
+          
+        </ul>
+      </nav>
+    </div>
+  </header>
+  <div class="app-main">
+    <aside class="side-bar">
+      <div>
+
+      </div>
+    </aside>
     <main class="profile-container">
+      <div class="profile-feed">
         <div class="profile-card">
-            <h1>Profile</h1>
+            <h1>Home</h1>
             <div class="profile-info">
                 <div class="info-group">
                     <label>Username:</label>
@@ -25,6 +50,8 @@
                 <button onclick="localStorage.clear(); window.location.href='/signin'">Sign Out</button>
             </div>
         </div>
+      </div>
     </main>
+  </div>
 </body>
 </html>
