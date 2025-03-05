@@ -24,13 +24,13 @@ world.renderer = new OBCF.PostproductionRenderer(components,container);
 world.camera = new OBC.OrthoPerspectiveCamera(components);
 
 
+world.camera.controls.camera.near = 0.1;
+world.camera.controls.camera.far = 2000;
+world.camera.controls.camera.updateProjectionMatrix();
 
 components.init();
 world.camera.controls.setLookAt(10, 10, 10, 0, 0, 0);
 world.scene.setup();
-
-
-
 
 
 container.addEventListener("resize", () => {
