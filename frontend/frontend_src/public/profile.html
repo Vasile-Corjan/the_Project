@@ -14,43 +14,96 @@
       </div>
       <div class="appHeader-bar-right">
         <div class="appHeader-user">
-          <img src="./static/avatar-user.png" alt="" sizes="32" height="32" width="32">
+          <img src="./static/avatar-user.png" alt="User Avatar" sizes="32" height="32" width="32">
         </div>
       </div>
-    
-      <nav class="nav">
-        <ul>
-          
-        </ul>
-      </nav>
     </div>
   </header>
   <div class="app-main">
     <aside class="side-bar">
-      <div>
-
+      <div class="side-bar-components">
+        <h2>Top projects</h2>
+        <ul class="project-list">
+          <li>Project 1</li>
+          <li>Project 2</li>
+          <li>Project 3</li>
+        </ul>
       </div>
     </aside>
-    <main class="profile-container">
-      <div class="profile-feed">
-        <div class="profile-card">
-            <h1>Home</h1>
-            <div class="profile-info">
-                <div class="info-group">
-                    <label>Username:</label>
-                    <span id="username"></span>
-                </div>
-                <div class="info-group">
-                    <label>Email:</label>
-                    <span id="email"></span>
-                </div>
-            </div>
-            <div class="profile-actions">
-                <button onclick="window.location.href='/viewer'">Go to Viewer</button>
-                <button onclick="localStorage.clear(); window.location.href='/signin'">Sign Out</button>
-            </div>
+    <main class="content">
+      <section class="content-section1">
+        <h2>Home</h2>
+        <p>Learn with a tutorial project</p>
+        <div class="cards">
+          <div class="card-item">
+            <h4>Introduction to the platform</h4>
+            <p>Get started using ..... in less than you ever experienced</p>
+          </div>
+          <div class="card-item">
+            <h4>Collaborate with your peers</h4>
+            <p>Work together with other at your projects</p>
+          </div>
+          <div class="card-item">
+            <h4>Store securely your project materials</h4>
+            <p>It is very secure here. Test against the Russian cyberattacks. Moldovan quality</p>
+          </div>
+          <div class="card-item">
+            <h4>Say hello to other</h4>
+            <p>Connect and share your opnions and workflows with others</p>
+          </div>
         </div>
-      </div>
+      </section>
+      <section class="content-section2">
+        <p>Start a project</p>
+        <div class="cards">
+          <div class="card-item">
+            <h4>Start a new project for .....</h4>
+            <p>A project contains all you project materials, revision history, and collaborator discussion.</p>
+            <form class="new-project-form">
+              <label for="project-name">Project name *</label>
+              <input type="text" id="project-name" name="project-name" placeholder="name your new repository...">
+              <div class="radio-group">
+                <label>
+                  <input type="radio" name="visibility" value="public">
+                  Public
+                </label>
+                <label>
+                  <input type="radio" name="visibility" value="private" checked>
+                  Private
+                </label>
+              </div>
+              <button type="submit" class="create-project-btn">Create a new project</button>
+            </form>
+          </div>
+          <div class="card-item">
+            <h4>Introduce yourself</h4>
+            <p>Share information about yourself by creating a profile, which appears at the top of your profile page.</p>
+              <ul class="profile-form">
+                <li>
+                  <label for="">- 👋 Hi, I'm ...</label>
+                </li>
+                <li>
+                  <label for="">- 👀 I'm interested in ...</label>
+                </li>
+                <li>
+                  <label for="">- 🌱 I'm currently learning ...</label>
+                </li>
+                <li>
+                  <label for="">- 💞️ I'm looking to collaborate on ...</label>
+                </li>
+                <li>
+                  <label for="">- 📫 How to reach me ...</label>
+                </li>
+                <li>
+                  <label for="">- ⚡ Fun fact ...</label>
+                </li>
+              </ul>
+          </div>
+        </div>
+      <!-- <div class="profile-actions">
+          <button onclick="window.location.href='/viewer'">Go to Viewer</button>
+          <button onclick="localStorage.clear(); window.location.href='/signin'">Sign Out</button>
+      </div> -->
     </main>
   </div>
 </body>
