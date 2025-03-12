@@ -49,7 +49,7 @@ export async function Profile() {
           e.stopPropagation();
         });
       } 
-    }
+    }   
   }
 }
 export default Profile;
