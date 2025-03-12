@@ -13,8 +13,13 @@
         <a href="/">LOGO</a>
       </div>
       <div class="appHeader-bar-right">
-        <div class="appHeader-user">
-          <img src="./static/avatar-user.png" alt="User Avatar" sizes="32" height="32" width="32">
+        <div class="appHeader-user" tabindex="0" aria-haspopup="true" aria-expanded="false">
+          <img src="./static/avatar-user.png" alt="User Avatar" sizes="32" height="32" width="32" class="dropbtn">
+          <div class="dropdown-content" role="menu">
+            <a href="#">Settings</a>
+            <a href="#">About</a>
+            <a href="#" onclick="localStorage.clear(); window.location.href='/'">Log out</a>
+          </div>
         </div>
       </div>
     </div>
@@ -24,7 +29,7 @@
       <div class="side-bar-components">
         <h2>Top projects</h2>
         <ul class="project-list">
-          <li>Project 1</li>
+          <a href="#" onclick="window.location.href='/project'">Project 1</a>
           <li>Project 2</li>
           <li>Project 3</li>
         </ul>
@@ -102,7 +107,6 @@
         </div>
       <div class="profile-actions">
           <button onclick="window.location.href='/viewer'">Go to Viewer</button>
-          <button onclick="localStorage.clear(); window.location.href='/signin'">Sign Out</button>
       </div>
     </main>
   </div>

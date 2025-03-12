@@ -53,10 +53,40 @@ body {
 
 .appHeader-user {
   position: relative;
+  cursor: pointer;
 }
 
-.appHeader-user img {
+.dropbtn {
   border-radius: 50%;
+  cursor: pointer;
+}
+
+.dropdown-content {
+  display: none;
+  position: absolute;
+  right: 0;
+  top: 100%;
+  background-color: #f9f9f9;
+  min-width: 160px;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  z-index: 1000;
+  border-radius: 6px;
+  margin-top: 5px;
+  margin-bottom: 5px;
+}
+
+.dropdown-content a {
+  color: black;
+  padding: 12px 10px;
+  text-decoration: none;
+  display: block;
+  text-align: left; 
+  transition: background-color 0.2s ease;
+}
+
+.dropdown-content a:hover{
+  background-color: #d1d5da;
+  border-radius: 6px;
 }
 
 /* Mobile menu toggle button - hidden by default on desktop */

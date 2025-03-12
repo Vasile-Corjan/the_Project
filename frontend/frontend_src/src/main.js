@@ -3,6 +3,7 @@ import Register from "./pages/register";
 import SignIn from "./pages/signin";
 import Viewer from "./pages/viewer/index";
 import Profile from "./pages/profile";
+import Project from "./pages/project";
 
 const routes = {
   "/": Home,
@@ -10,6 +11,7 @@ const routes = {
   "/signup": Register,
   "/viewer": Viewer,
   "/profile": Profile,
+  "/project": Project // URL structure .../username/project name
 }
 
 const cache = {};
@@ -39,7 +41,17 @@ async function renderPage() {
   const pageFunction = routes[path];
 
   if (pageFunction) {
-    document.getElementById("app").innerHTML = await fetchPage(path, pageFunction);
+    const page = await fetchPage(path, pageFunction);
+
+    if (typeof page === 'object' && page.html) {
+      document.getElementById("app").innerHTML = page.html;
+
+      if (page.afterRender && typeof page.afterRender === 'function') {
+        page.afterRender();
+      }
+    } else {
+      document.getElementById("app").innerHTML = page;
+    }
   } else {
     document.getElementById("app").innerHTML = "<h1>404 Page Not Found</h1>";
   }
