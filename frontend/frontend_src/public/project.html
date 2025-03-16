@@ -3,9 +3,38 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="./styles/project.css">
   <title>Project</title>
 </head>
 <body>
-  <h1 style="margin: auto;">THIS IS THE PROJECT PAGE</h1>
+  <header class="appHeader">
+    <div class="appHeader-bar">
+      <div class="appHeader-bar-left">
+        <a href="/">LOGO</a>
+      </div>
+      <div class="appHeader-bar-right">
+        <div class="appHeader-user" tabindex="0" aria-haspopup="true" aria-expanded="false">
+          <img src="./static/avatar-user.png" alt="User Avatar" sizes="32" height="32" width="32" class="dropbtn">
+          <div class="dropdown-content" role="menu">
+            <a href="#">Settings</a>
+            <a href="#">About</a>
+            <a href="#" onclick="localStorage.clear(); window.location.href='/'">Log out</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+  <main>
+    <div class="project-navbar">
+      <nav class="navbar">
+        <ul class="navbar-body">
+          <li><a href="#">Project</a></li>
+          <li><a href="#">Issues</a></li>
+          <li><a href="#">Insights</a></li>
+          <li><a href="#">Settings</a></li>
+        </ul>
+    </nav>
+    </div>
+  </main>
 </body>
 </html>

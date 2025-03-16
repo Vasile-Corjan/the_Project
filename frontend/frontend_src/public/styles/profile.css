@@ -40,7 +40,7 @@ body {
 .appHeader-bar-left a {
   color: white;
   text-decoration: none;
-  font-size: 1.5rem;
+  font-size: 1rem;
 }
 
 .appHeader-bar-right {
@@ -153,6 +153,18 @@ body {
   padding: 0.5rem 0;
   border-bottom: 1px solid #444c56;
 }
+
+.project-list a {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #444c56;
+  text-decoration: none;
+  
+}
+
+.project-list a:visited {
+  color: var(--sidebar-text-color);
+}
+
 
 /* MAIN CONTENT */
 .content {

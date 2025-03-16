@@ -1,0 +1,149 @@
+:root {
+  --feed-sidebar: 256px;
+  --sidebar-width: 256px;
+  --header-height: 60px;
+  --primary-color: #007bff;
+  --background-color: #f6f8fa;
+  --sidebar-bg-color: #2d333b;
+  --sidebar-text-color: #c9d1d9;
+  --card-bg-color: #ffffff;
+  --card-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  background-color: var(--background-color);
+  min-height: 100vh;
+}
+
+.appHeader-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.appHeader-bar-left {
+  display: flex;
+  flex: 1 1 auto;
+  gap: 8px;
+}
+
+.appHeader-bar-left a {
+  color: white;
+  text-decoration: none;
+  font-size: 1rem;
+  gap: 20px;
+}
+
+.project-title-link{
+  font-size: 18px !important;
+  margin-left: 12px;
+  position: relative;
+}
+.project-title-link::before {
+  content: '/';
+  color: white;
+  position: absolute;
+  left: -8px;
+}
+.appHeader-bar-right {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  max-height: 2rem;
+}
+
+.appHeader-user {
+  position: relative;
+  cursor: pointer;
+}
+
+.dropbtn {
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.dropdown-content {
+  display: none;
+  position: absolute;
+  right: 0;
+  top: 100%;
+  background-color: #f9f9f9;
+  min-width: 160px;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  z-index: 1000;
+  border-radius: 6px;
+  margin-top: 5px;
+  margin-bottom: 5px;
+}
+
+.dropdown-content a {
+  color: black;
+  padding: 12px 10px;
+  text-decoration: none;
+  display: block;
+  text-align: left; 
+  transition: background-color 0.2s ease;
+}
+
+.dropdown-content a:hover{
+  background-color: #d1d5da;
+  border-radius: 6px;
+}
+
+/* Mobile menu toggle button - hidden by default on desktop */
+.menu-toggle {
+  display: none;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 12px;
+  position: fixed;
+  top: 70px;
+  left: 10px;
+  z-index: 1000;
+  cursor: pointer;
+}
+
+/*PROJECT PAGE NAB-BAR*/
+.project-navbar {
+  padding: 0 1rem;
+  border-bottom: 2px solid gray;
+}
+.navbar {
+  display: flex;
+  justify-content: flex-start;
+}
+.navbar-body {
+  list-style: none;
+  display: flex;
+  padding: 0;
+  margin: 0;
+}
+.navbar-body li {
+  margin-right: 20px;
+}
+.navbar-body li a {
+  text-decoration: none;
+  padding: 10px 15px;
+  display: block;
+  border-bottom: 2px solid transparent;
+  color: black
+}
+
+.navbar-body li a:hover,
+.navbar-body li a.active {
+  background-color: #c9d1d9;
+  border-radius: 6px;
+}
