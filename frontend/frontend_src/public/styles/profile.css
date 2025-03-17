@@ -43,6 +43,29 @@ body {
   font-size: 1rem;
 }
 
+.nav-list {
+  display: flex;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  align-items: center;
+}
+
+.nav-list li {
+  margin: 0 4px;
+}
+
+.nav-username {
+  color: white;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.nav-username:hover,
+.nav-project:hover {
+  text-decoration: underline;
+}
+
 .appHeader-bar-right {
   display: flex;
   align-items: center;

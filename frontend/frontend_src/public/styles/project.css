@@ -18,7 +18,7 @@
 
 body {
   font-family: Arial, sans-serif;
-  background-color: var(--background-color);
+  background-color: #eceff0;
   min-height: 100vh;
 }
 
@@ -37,6 +37,30 @@ body {
   gap: 8px;
 }
 
+.nav-list {
+  display: flex;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  align-items: center;
+}
+
+.nav-list li {
+  margin: 0 4px;
+}
+
+.nav-username {
+  color: white;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.nav-username:hover,
+.nav-project:hover {
+  text-decoration: underline;
+}
+
+
 .appHeader-bar-left a {
   color: white;
   text-decoration: none;
@@ -50,7 +74,6 @@ body {
   position: relative;
 }
 .project-title-link::before {
-  content: '/';
   color: white;
   position: absolute;
   left: -8px;
@@ -139,11 +162,90 @@ body {
   padding: 10px 15px;
   display: block;
   border-bottom: 2px solid transparent;
-  color: black
+  color: black;
+  font-size: 14px;
 }
 
 .navbar-body li a:hover,
 .navbar-body li a.active {
   background-color: #c9d1d9;
   border-radius: 6px;
+}
+
+/* MAIN SECTION */
+
+.project-tree{
+  display: flex;
+  /*background-color: #eceff0;*/
+}
+
+.project-files {
+  max-width: 900px;
+  margin: 20px auto;
+  background: white;
+  border: 1px solid #d0d7de;
+  border-radius: 6px;
+}
+.files-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+.files-table th {
+  text-align: left;
+  padding: 8px 16px;
+  font-size: 12px;
+  color: #57606a;
+  font-weight: 600;
+  background-color: #f6f8fa;
+  border-bottom: 1px solid #d0d7de;
+}
+.filename-header {
+  width: 40%;
+}
+.message-header {
+  width: 40%;
+}
+.time-header {
+  width: 20%;
+}
+.file-row {
+  border-bottom: 1px solid #d0d7de;
+  height: 40px;
+}
+.file-row:hover {
+  background-color: #f6f8fa;
+}
+.file-name {
+  padding: 8px 16px;
+  display: flex;
+  align-items: center;
+}
+
+.file-name a {
+  text-decoration: none;
+  color: black;
+}
+
+.change-message, .change-time {
+  padding: 8px 16px;
+  font-size: 14px;
+}
+
+.change-time {
+  display: flex;
+  justify-content: flex-end;
+}
+.description-block {
+  max-width: 900px;
+  margin: 20px auto;
+  background: white;
+  border: 1px solid #d0d7de;
+  border-radius: 6px;
+  padding: 32px;
+}
+.description-block h1 {
+  padding-bottom: .3em;
+  border-bottom: 1px solid #3d444db3;
+  margin-bottom: 1rem;
 }
