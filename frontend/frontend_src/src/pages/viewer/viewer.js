@@ -5,9 +5,6 @@ import * as BUI from "@thatopen/ui";
 import * as CUI from "@thatopen/ui-obc"
 import * as WEBIFC from "web-ifc";
 //import Stats from "stats.js"
-import { authenticatedFetch } from "../../api";
-
-
 
 BUI.Manager.init();
 
@@ -23,10 +20,25 @@ world.scene = new OBC.SimpleScene(components);
 world.renderer = new OBCF.PostproductionRenderer(components,container);
 world.camera = new OBC.OrthoPerspectiveCamera(components);
 
-
+// Camera changes
 world.camera.controls.camera.near = 0.1;
-world.camera.controls.camera.far = 2000;
+world.camera.controls.camera.far = 5000;
+world.camera.controls.camera.fov = 45;
+world.camera.controls.enableDamping = true;
+world.camera.controls.smoothTime = 0.05;
+world.camera.controls.rotateSpeed = 0.7;
+world.camera.controls.minDistance = 1;
+world.camera.controls.maxDistance = 1000
 world.camera.controls.camera.updateProjectionMatrix();
+
+// Renderer changes
+world.renderer.three.shadowMap.enabled = true;
+world.renderer.three.shadowMap.type = THREE.PCFShadowMap;
+world.renderer.three.outputColorSpace = THREE.SRGBColorSpace;
+world.renderer.three.toneMapping = THREE.ACESFilmicToneMapping;
+world.renderer.three.toneMappingExposure = 1.0;
+world.renderer.three.physicallyCorrectLights = true;
+world.renderer.three.c
 
 components.init();
 world.camera.controls.setLookAt(10, 10, 10, 0, 0, 0);
@@ -75,14 +87,16 @@ postproduction.customEffects.excludedMeshes.push(grid.three) // Excludes the gri
 
 // Ambient Occlusion settings
 const ao = postproduction.n8ao.configuration;
-ao.aoRadius = 5.0; // Radius of AO effect (default: 5.0)
-ao.intensity = 2.0; // Strength of the AO effect (default: 1.0)
-ao.denoiseSamples = 8; // Number of samples for denoising (default: 8)
+ao.aoRadius = 10.0; // Radius of AO effect (default: 5.0)
+ao.intensity = 1.5; // Strength of the AO effect (default: 1.0)
+ao.denoiseSamples = 16; // Number of samples for denoising (default: 8)
 ao.denoiseRadius = 12; // Radius for denoising (default: 12)
+ao.screenSpaceRadius = true;
+
 
 // Gamma correction settings
-postproduction.setPasses({gamma: false,
-  custom: false,
+postproduction.setPasses({gamma: true,
+  custom: true,
   ao: true
 })
 
@@ -107,11 +121,9 @@ ifcLoader.settings.webIfc.OPTIMIZE_PROFILES = true;
 
 // EXCLUDING THE IFCSPACE
 
-ifcLoader.settings.excludedCategories.add(WEBIFC.IFCSPACE); // or you can add a list of categories to exclude
+//ifcLoader.settings.excludedCategories.add(WEBIFC.IFCSPACE); // or you can add a list of categories to exclude
 
 // THIS LOADS THE IFC HURRAYYYYYYYYY
-
-export let uuid = "";
 
 const onBtnClick = () => {
   const fileOpener = document.createElement("input");
@@ -125,7 +137,6 @@ const onBtnClick = () => {
     const buffer = await file.arrayBuffer();
     const data = new Uint8Array(buffer);
     const model = await ifcLoader.load(data, true, fileName)
-    uuid = model.uuid;
   };
   fileOpener.click();
 };
@@ -145,136 +156,182 @@ fragments.onFragmentsLoaded.add( async (model) => {
 const cullers = components.get(OBC.Cullers);
 const culler = cullers.create(world);
 
+const indexer = components.get(OBC.IfcRelationsIndexer);
+//const inverseAttributes = ["IsDecomposedBy", "Decomposes", "AssociatedTo", "HasAssociations", "ClassificationForObjects", "IsGroupedBy", "HasAssignments", "IsDefinedBy", "DefinesOcurrence", "IsTypedBy", "Types", "Defines", "ContainedInStructure", "ContainsElements", "HasControlElements", "AssignedToFlowElement", "ConnectedTo", "ConnectedFrom", "ReferencedBy", "Declares", "HasContext", "Controls", "IsNestedBy", "Nests", "DocumentRefForObjects"]; 
 
-// Model list
-function addRowGroup(model) {
-  const rowGroups = [];
+
+
+fragments.onFragmentsLoaded.add(async (model) => {
+  const inverseAttributes = ["IsDecomposedBy", "ContainsElements"]
+  const getdecompositionTree = async (components, model, expressID, inverseAttributes) => {
+    const rows = [];
+    const indexer = components.get(OBC.IfcRelationsIndexer);
+    const entityAttrs = await model.getProperties(expressID);
+    if (!entityAttrs) return rows;
+
+    const {type} = entityAttrs;
+    const entityRow = {
+      data: {
+        Entity: OBC.IfcCategoryMap[type],
+        Name: entityAttrs.Name?.value,
+        modelID: model.uuid,
+        expressID
+      },
+      children: []
+    };
+
+    for (const attrName of inverseAttributes) {
+      const relations = indexer.getEntityRelations(model, expressID, attrName);
+      if (!relations) continue;
+      if (!entityRow.children) entityRow.children = [];
+      entityRow.data.relations = JSON.stringify(relations);
+
+      const entityGroups = {};
+      for (const id of relations) {
+        const decompositionRow = await getdecompositionTree(components, model, id, inverseAttributes);
+
+        for (const row of decompositionRow) {
+          if (row.data.relations) {
+            entityRow.children.push(row);
+          } else {
+            const data = model.data.get(id);
+            if (!data) {
+              entityRow.children.push(row);
+              continue;
+            }
+            const type = data[1][1];
+            const entity = OBC.IfcCategoryMap[type];
+            if(!(entity in entityGroups)) {
+              entityGroups[entity] = [];
+            }
+            row.data.Entity = row.data.Name;
+            delete row.data.Name;
+            entityGroups[entity].push(row)
+          }
+        }
+      }
+
+      for (const entity in entityGroups){
+        const children = entityGroups[entity];
+        const relations = children.map((child) => child.data.expressID);
+        const row = {
+          data: {
+            Entity: entity,
+            modelID: model.uuid,
+            relations: JSON.stringify(relations),
+          },
+          children
+        };
+        entityRow.children.push(row);
+      }
+    }
+    rows.push(entityRow);
+    return rows;
+  };
+
+  const computeRowData = async (components, models, inverseAttributes, expressID) => {
+    const indexer = components.get(OBC.IfcRelationsIndexer);
+    const rows = [];
+    for (const model of models) {
+      let modelData
+      if (expressID) {
+        modelData = {
+          data: {
+            Entity: model.name !== "" ? model.name : model.uuid,
+          },
+          children: await getdecompositionTree(
+            components,
+            model,
+            expressID,
+            inverseAttributes,
+          ),
+        };
+      } else {
+        const modelRelations = indexer.relationMaps[model.uuid];
+        const projectAttrs = await model.getAllPropertiesOfType(
+          WEBIFC.IFCPROJECT,
+        );
+        if (!(modelRelations && projectAttrs)) continue;
+        const { expressID } = Object.values(projectAttrs)[0];
+        modelData = {
+          data: {
+            Entity: model.name !== "" ? model.name : model.uuid,
+          },
+          children: await getdecompositionTree(
+            components,
+            model,
+            expressID,
+            inverseAttributes,
+          ),
+        };
+      }
+      rows.push(modelData);
+    }
+    return rows;
+  };
+
+  // Create button and add click handler
+  const treeButton = document.createElement('button');
+  treeButton.textContent = 'Update Tree';
+  treeButton.style.position = 'absolute';
+  treeButton.style.top = '10px';
+  treeButton.style.right = '10px';
+  document.body.appendChild(treeButton);
+
+  treeButton.addEventListener('click', async () => {
+    const test = computeRowData(components,[model],inverseAttributes)
+    console.log(test)
+  });
+
+
+  const getRowFragmentIdMap = (components, rowData) => {
+    const fragments = components.get(OBC.FragmentsManager);
+    const { modelID, expressID, relations } = rowData;
+    if (!modelID) return null;
+    const model = fragments.groups.get(modelID);
+    if (!model) return null;
+    const fragmentIDMap = model.getFragmentMap([
+      expressID,
+      ...JSON.parse(relations ?? "[]"),
+    ]);
+    console.log('Fragment ID Map:', fragmentIDMap);  // Added console.log
+    return fragmentIDMap;
+  };
+});
+
+fragments.onFragmentsLoaded.add((model) => {
+  // Get the test div
+  const testDiv = document.querySelector('.test');
+  if (!testDiv) return;
+  
   if (!model) return;
-
-  // Create a new rowGroup
-  const rowGroup = {
+  
+  const row = {
     data: {
       Name: model.name || model.uuid,
       modelID: model.uuid,
-      schema: model.ifcMetadata.schema, // Add schema here if needed
-    },
+      schema: model.ifcMetadata?.schema || "",
+      viewDefinition: model.ifcMetadata?.viewDefinition || "",
+    }
   };
-  // Add the rowGroup to the array
-  rowGroups.push(rowGroup);
+  
+  // Create and append only the new model to the test div
+  const modelDiv = document.createElement('div');
+  modelDiv.className = 'model-entry';
+  //modelDiv.dataset.modelId = row.data.modelID; // Add data attribute for identification
+  
+  const nameEl = document.createElement('p');
+  nameEl.textContent = row.data.Name;
+  
+  const schemaEl = document.createElement('label');
+  schemaEl.textContent = row.data.schema;
 
-  // Update the HTML by creating the necessary <p> elements
-  const panel = document.getElementsByClassName("model-list")[0];
-  const createParagraph = (text) => {
-    const p = document.createElement("p");
-    p.textContent = text;
-    return p;
-  };
-
-  const div = document.createElement("div");
-  div.setAttribute("class", "uploaded-model");
-  div.append(
-    createParagraph(rowGroup.data.Name.split(".")[0]),
-    createParagraph(rowGroup.data.schema)
-  );
-
-  panel.appendChild(div);
-}
-//addRowGroup();
-
-const indexer = components.get(OBC.IfcRelationsIndexer);
-fragments.onFragmentsLoaded.add(async (model) => {
-  if (model.hasProperties) await indexer.process(model);
+  modelDiv.appendChild(nameEl);
+  modelDiv.appendChild(schemaEl);
+  testDiv.appendChild(modelDiv);
 });
 
-// ELEMENT PROPERTIES
-const [propertiesTable, updatePropertiesTable] = CUI.tables.elementProperties({
-  components,
-  fragmentIdMap: {},
-});
 
-propertiesTable.preserveStructureOnFilter = true;
-propertiesTable.indentationInText = false;
-
-highlighter.events.select.onHighlight.add((fragmentIdMap) => {
-  updatePropertiesTable({ fragmentIdMap });
-});
-
-highlighter.events.select.onClear.add(() =>
-  updatePropertiesTable({ fragmentIdMap: {} }),
-);
-
-const propertiesPanel = BUI.Component.create(() => {
-  const onTextInput = (e) => {
-    const input = e.target;
-    propertiesTable.queryString = input.value !== "" ? input.value : null;
-  };
-
-  const expandTable = (e) => {
-    const button = e.target;
-    propertiesTable.expanded = !propertiesTable.expanded;
-    button.label = propertiesTable.expanded ? "Collapse" : "Expand";
-  };
-
-  const copyAsTSV = async () => {
-    await navigator.clipboard.writeText(propertiesTable.tsv);
-  };
-
-  return BUI.html`
-    <bim-panel label="Properties">
-      <bim-panel-section label="Element Data">
-        <div style="display: flex; gap: 0.5rem;">
-          <bim-button @click=${expandTable} label=${propertiesTable.expanded ? "Collapse" : "Expand"}></bim-button> 
-          <bim-button @click=${copyAsTSV} label="Copy as TSV"></bim-button> 
-        </div> 
-        <bim-text-input @input=${onTextInput} placeholder="Search Property" debounce="250"></bim-text-input>
-        ${propertiesTable}
-      </bim-panel-section>
-    </bim-panel>
-  `;
-});
-
-// RELATIONS TREE
-const [relationsTree] = CUI.tables.relationsTree({
-  components,
-  models: [],
-});
-
-const [modelList] = CUI.tables.modelsList({
-  components,
-  tags: {schema: true, viewDefinition: false },
-  actions: {download: false, visibility: true, dispose: true},
-});
-
-relationsTree.preserveStructureOnFilter = false;
-
-const panel = BUI.Component.create(() => {
-
-  return BUI.html`
-   <bim-panel label="Relations Tree">
-   <bim-panel-section icon= "mage:box-3d-fill" label="Loaded Models">
-    ${modelList}
-    </bim-panel-section>
-    <bim-panel-section label="Model Tree">
-      ${relationsTree}
-    </bim-panel-section>
-   </bim-panel> 
-  `;
-});
-
-const app = document.createElement("bim-grid");
-app.layouts = {
-  main: {
-    template: `
-    "propertiesPanel"
-    "panel"
-    `,
-    elements: {propertiesPanel, panel},
-  },
-};
-app.style.width = "25rem";
-app.style.position = "absolute";
-app.layout = "main";
-document.body.append(app);
 
 
 // CREATING BOUNDINGBOX
@@ -378,12 +435,6 @@ document.getElementById("dim").addEventListener('click', () =>{
   }
 });
 
-
-
-
-
-
-
 // END DIMENSIONS CREATION
 window.onkeydown = (event) => {
   if (event.code === "Escape") {
@@ -418,17 +469,18 @@ function resetCamera() {
 }
 
 
-/* // STATS
-const stats = new Stats();
+// STATS
+/*const stats = new Stats();
 stats.showPanel(2);
 document.body.append(stats.dom)
 stats.dom.style.position = "fixed";
 stats.dom.style.left = "10px";
-stats.dom.style.zIndex = "unset";
+stats.dom.style.top = "0px";
+stats.dom.style.zIndex = "1000";
 stats.dom.style.width = "100px";
 stats.dom.style.height = "100px";
 world.renderer.onBeforeUpdate.add(() => stats.begin());
-world.renderer.onAfterUpdate.add(() => stats.end()); */
+world.renderer.onAfterUpdate.add(() => stats.end());*/
 
 
 
