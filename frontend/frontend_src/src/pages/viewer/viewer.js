@@ -69,7 +69,6 @@ fitButton.addEventListener("click", () => {
   world.camera.fit([loadedModel], 0.5);
 });
 
-
 // HERE change the projection as a string from perspective to orthographic. Add a button that changes the projections and
 // change the "HOUSE" button to fit the geometry.
 
@@ -92,14 +91,11 @@ ao.intensity = 1.5; // Strength of the AO effect (default: 1.0)
 ao.denoiseSamples = 16; // Number of samples for denoising (default: 8)
 ao.denoiseRadius = 12; // Radius for denoising (default: 12)
 ao.screenSpaceRadius = true;
-
-
 // Gamma correction settings
 postproduction.setPasses({gamma: true,
   custom: true,
   ao: true
 })
-
 
 // HIGHLIGHTER
 const highlighter = components.get(OBCF.Highlighter);
@@ -109,7 +105,6 @@ highlighter.setup({world,
   selectEnabled:true, 
   selectionColor: new THREE.Color("#F59716")}); // change the hover color and edit other settings
 highlighter.multiple = "ctrlKey";
-
 
 // IFC LOADER
 const fragments = components.get(OBC.FragmentsManager);
@@ -158,8 +153,6 @@ const culler = cullers.create(world);
 
 const indexer = components.get(OBC.IfcRelationsIndexer);
 //const inverseAttributes = ["IsDecomposedBy", "Decomposes", "AssociatedTo", "HasAssociations", "ClassificationForObjects", "IsGroupedBy", "HasAssignments", "IsDefinedBy", "DefinesOcurrence", "IsTypedBy", "Types", "Defines", "ContainedInStructure", "ContainsElements", "HasControlElements", "AssignedToFlowElement", "ConnectedTo", "ConnectedFrom", "ReferencedBy", "Declares", "HasContext", "Controls", "IsNestedBy", "Nests", "DocumentRefForObjects"]; 
-
-
 
 fragments.onFragmentsLoaded.add(async (model) => {
   const inverseAttributes = ["IsDecomposedBy", "ContainsElements"]
@@ -283,7 +276,6 @@ fragments.onFragmentsLoaded.add(async (model) => {
     console.log(test)
   });
 
-
   const getRowFragmentIdMap = (components, rowData) => {
     const fragments = components.get(OBC.FragmentsManager);
     const { modelID, expressID, relations } = rowData;
@@ -299,40 +291,137 @@ fragments.onFragmentsLoaded.add(async (model) => {
   };
 });
 
+// LOADED MODELS PANEL(WINDOW)
+const loadedModels = [];
+let dataPanel = null;
+let eventListenerAdded = false
 fragments.onFragmentsLoaded.add((model) => {
-  // Get the test div
-  const testDiv = document.querySelector('.test');
-  if (!testDiv) return;
-  
-  if (!model) return;
-  
-  const row = {
-    data: {
-      Name: model.name || model.uuid,
-      modelID: model.uuid,
-      schema: model.ifcMetadata?.schema || "",
-      viewDefinition: model.ifcMetadata?.viewDefinition || "",
-    }
-  };
-  
-  // Create and append only the new model to the test div
-  const modelDiv = document.createElement('div');
-  modelDiv.className = 'model-entry';
-  //modelDiv.dataset.modelId = row.data.modelID; // Add data attribute for identification
-  
-  const nameEl = document.createElement('p');
-  nameEl.textContent = row.data.Name;
-  
-  const schemaEl = document.createElement('label');
-  schemaEl.textContent = row.data.schema;
 
-  modelDiv.appendChild(nameEl);
-  modelDiv.appendChild(schemaEl);
-  testDiv.appendChild(modelDiv);
+  if (!model) return;
+  loadedModels.push({
+    name: model.name,
+    modelId: model.uuid,
+    schema: model.ifcMetadata.schema,
+    viewDef: model.ifcMetadata.viewDefinition
+  })
+
+  const loadModelbutton = document.querySelector('.loaded-model');
+  if (!loadModelbutton) return;
+  
+  if (!dataPanel) {
+    const sideMenu = document.querySelector('.side-nav');
+    dataPanel = document.createElement('div');
+    dataPanel.className = 'data-panel';
+    sideMenu.appendChild(dataPanel);
+  }
+  if(!eventListenerAdded){
+    eventListenerAdded = true;
+    loadModelbutton.addEventListener('click', () => {
+      
+      if(dataPanel.classList.contains('visible')) {
+        dataPanel.classList.remove('visible');
+        dataPanel.style.display = 'none';
+      } else{
+        updateDataPanel(dataPanel);
+        dataPanel.style.display = 'block';
+        dataPanel.classList.add('visible');
+      }
+    });
+  }
+  
+  updateDataPanel(dataPanel);
+
+  if (!dataPanel.classList.contains('visible')) {
+    dataPanel.style.display = 'block';
+    dataPanel.classList.add('visible');
+  }
 });
 
+function updateDataPanel(dataPanel){
+  if (!dataPanel) return;
+
+  dataPanel.innerHTML = '';
+  const dataPaneltitle = document.createElement('p');
+  dataPaneltitle.textContent = "Loaded Models"
+  dataPanel.appendChild(dataPaneltitle);
+
+  const removeiconSVG = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="m18 9l-.84 8.398c-.127 1.273-.19 1.909-.48 2.39a2.5 2.5 0 0 1-1.075.973C15.098 21 14.46 21 13.18 21h-2.36c-1.279 0-1.918 0-2.425-.24a2.5 2.5 0 0 1-1.076-.973c-.288-.48-.352-1.116-.48-2.389L6 9m7.5 6.5v-5m-3 5v-5m-6-4h4.615m0 0l.386-2.672c.112-.486.516-.828.98-.828h3.038c.464 0 .867.342.98.828l.386 2.672m-5.77 0h5.77m0 0H19.5"/></svg>';
+  const visibilityOnSVG = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M2.062 12.348a1 1 0 0 1 0-.696a10.75 10.75 0 0 1 19.876 0a1 1 0 0 1 0 .696a10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/></g></svg>'
+  const visibilityOffSVG = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575a1 1 0 0 1 0 .696a10.8 10.8 0 0 1-1.444 2.49m-6.41-.679a3 3 0 0 1-4.242-4.242"/><path d="M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151a1 1 0 0 1 0-.696a10.75 10.75 0 0 1 4.446-5.143M2 2l20 20"/></g></svg>'
 
 
+  loadedModels.forEach((loadedModel, index) => {
+    const modelIconContainer = document.createElement('div');
+    modelIconContainer.classList = 'model-icons-name'
+
+    const modelName = document.createElement('p');
+    modelName.textContent = loadedModel.name || loadedModel.uuid;
+
+    const iconContainer =  document.createElement('div');
+    iconContainer.className = 'icon-container'
+
+    const removeBtn = document.createElement('button');
+    removeBtn.innerHTML = removeiconSVG;
+    removeBtn.className = 'model-remove-icon';
+
+    const visibilityBtn = document.createElement('button');
+    visibilityBtn.innerHTML = visibilityOnSVG;
+    visibilityBtn.className = 'model-visibilityOn-icon';
+    visibilityBtn.dataset.visible = 'true';
+
+    const modelInstance = fragments.groups.get(loadedModel.modelId);
+    const modelIdMap = modelInstance.getFragmentMap(); 
+    
+    visibilityBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      
+      const isVisible = visibilityBtn.dataset.visible === 'true';
+      const hider = components.get(OBC.Hider);
+    
+      if(isVisible) {
+        // Hide the model
+        hider.set(false, modelIdMap);
+        visibilityBtn.innerHTML = visibilityOffSVG;
+        visibilityBtn.className = 'model-visibilityOff-icon';
+        visibilityBtn.dataset.visible = 'false';
+      } else {
+        // Show the model
+        hider.set(true, modelIdMap);
+        visibilityBtn.innerHTML = visibilityOnSVG;
+        visibilityBtn.className = 'model-visibilityOn-icon';
+        visibilityBtn.dataset.visible = 'true';
+      }
+    });
+
+    removeBtn.onclick = () => {
+      fragments.disposeGroup(modelInstance);
+
+      loadedModels.splice(index, 1);
+
+      updateDataPanel(dataPanel);
+    }
+    
+    iconContainer.appendChild(visibilityBtn);
+    iconContainer.appendChild(removeBtn);
+    modelIconContainer.appendChild(modelName);
+    modelIconContainer.appendChild(iconContainer)
+
+    const modelSchema = document.createElement('span');
+    modelSchema.textContent = loadedModel.schema || "";
+    
+    const modelViewdef = document.createElement('span');
+    modelViewdef.textContent = loadedModel.viewDef || "";
+
+    const modelDiv = document.createElement('div')
+    modelDiv.className = 'modelDiv';
+
+    modelDiv.appendChild(modelIconContainer);
+    modelDiv.appendChild(modelSchema);
+    modelDiv.appendChild(modelViewdef);
+    
+    dataPanel.appendChild(modelDiv);
+  });
+};
 
 // CREATING BOUNDINGBOX
 const fragmentBox = components.get(OBC.BoundingBoxer);
@@ -394,7 +483,6 @@ container.ondblclick = () =>{
 };
 
 // MEASURING DISTANCE
-
 const dimensions = components.get(OBCF.LengthMeasurement);
 dimensions.world = world;
 dimensions.enabled = false;
@@ -442,7 +530,6 @@ window.onkeydown = (event) => {
   };
 };
 
-
 // THIS DELETES THE MODEL FROM THE MEMORY 
 // Dispose
 
@@ -460,7 +547,6 @@ function disposeFragments() {
 document.getElementById('delete-model').addEventListener('click', () => {
   disposeFragments();
 })
-
 
 // RESET
 const bboxMesh = fragmentBox.getMesh();

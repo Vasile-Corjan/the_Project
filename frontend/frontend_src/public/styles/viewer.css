@@ -18,17 +18,19 @@ body {
   height: 100vh;
 }
 .side-nav {
-  width: 250px;
+  display: flex;
+  flex-direction: row;  
   height: 100%;
   position: fixed;
   top: 0;
   left: 0;
   padding: 30px 15px;
+  z-index: 100;
 }
 
 .nav-menu{
   display: flex;
-  justify-content: left;
+  position: relative;
   flex-direction: column;
 }
 
@@ -37,22 +39,101 @@ body {
   height: 40px;
   background-color: whitesmoke;
   border-radius: 6px;
-  margin-top: 10px;
+  margin-top: 15px;
+  cursor: pointer;
 }
 
-
-#panelContent{
-  display: flex;
-  flex-direction: column;
-  padding-top: 20px;
+.data-panel {
+  display: absolute;
+  top: 0;
+  left: 100%;
+  background-color: whitesmoke;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 10px;
+  width: 364px;
+  height: 136px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  z-index: 101;
+  margin-left: 10px;
+  margin-top: 15px;
+  height: fit-content;
 }
 
-.uploaded-model{
+.data-panel > p:first-child {
+  margin: 0 0 15px 0;
+  font-weight: bold;
+  font-size: 16px;
+  color: #333;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 5px;
+}
+
+.modelDiv{
+  border-bottom: 1px solid #ddd;
+}
+
+.modelDiv .model-icons-name p {
+  margin: 5px 0;
+  font-weight: bold;
+  color: #444;
+}
+
+.model-icons-name{
   display: flex;
-  justify-content: flex-start;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 5px 0;
+}
+
+.icon-container {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: right;
+  
+}
+
+.icon-container > button {
+  background: none;
+  cursor: pointer;
+  outline: none;
+  border: none;
   padding: 5px;
-  gap: 10px;
 }
+
+.icon-container button:hover{
+  background-color: #747272;
+  border-radius: 6px;
+  padding: 5px;
+}
+
+.modelDiv span{
+  display: block;
+  width: auto;
+  max-width: fit-content;
+  margin: 5px 0;
+  padding: 5px 8px;
+  font-size: 12px;
+  color: #555;
+  background-color: rgba(63, 63, 63, 0.1);
+  border-radius: 3px;
+  border-left: 3px solid #3f3f3f;
+}
+
+.data-panel {
+  opacity: 0;
+  transform: translateX(-10px);
+}
+
+.data-panel.visible {
+  opacity: 1;
+  transform: translateX(0);
+}
+
 
 #camera-view {
   position: fixed;
@@ -145,20 +226,6 @@ li > button {
   right: 50px;
 }
 
-.test{
-  position: fixed;
-  top: 50%;
-  right: 20px;
-  transform: translateY(-50%);
-  height: 200px;
-  width: auto;
-  color: black;
-  z-index: 2000;
-  background-color: rgba(255, 255, 255, 0.7); /* Optional: adding background for visibility */
-  border-radius: 8px; /* Optional: rounded corners */
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2); /* Optional: subtle shadow */
-  padding: 15px; /* Optional: inner spacing */
-}
 .model-entry{
   display: flex;
   flex-direction: row;
