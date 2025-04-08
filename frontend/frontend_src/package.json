@@ -9,7 +9,6 @@
     "preview": "vite preview"
   },
   "devDependencies": {
-    "@testing-library/jest-dom": "^6.6.3",
     "vite": "^6.0.5"
   },
   "dependencies": {

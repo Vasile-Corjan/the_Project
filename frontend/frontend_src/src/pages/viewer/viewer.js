@@ -151,152 +151,245 @@ fragments.onFragmentsLoaded.add( async (model) => {
 const cullers = components.get(OBC.Cullers);
 const culler = cullers.create(world);
 
-const indexer = components.get(OBC.IfcRelationsIndexer);
 //const inverseAttributes = ["IsDecomposedBy", "Decomposes", "AssociatedTo", "HasAssociations", "ClassificationForObjects", "IsGroupedBy", "HasAssignments", "IsDefinedBy", "DefinesOcurrence", "IsTypedBy", "Types", "Defines", "ContainedInStructure", "ContainsElements", "HasControlElements", "AssignedToFlowElement", "ConnectedTo", "ConnectedFrom", "ReferencedBy", "Declares", "HasContext", "Controls", "IsNestedBy", "Nests", "DocumentRefForObjects"]; 
-
-fragments.onFragmentsLoaded.add(async (model) => {
-  const inverseAttributes = ["IsDecomposedBy", "ContainsElements"]
-  const getdecompositionTree = async (components, model, expressID, inverseAttributes) => {
-    const rows = [];
-    const indexer = components.get(OBC.IfcRelationsIndexer);
-    const entityAttrs = await model.getProperties(expressID);
-    if (!entityAttrs) return rows;
-
-    const {type} = entityAttrs;
-    const entityRow = {
-      data: {
-        Entity: OBC.IfcCategoryMap[type],
-        Name: entityAttrs.Name?.value,
-        modelID: model.uuid,
-        expressID
-      },
-      children: []
-    };
-
-    for (const attrName of inverseAttributes) {
-      const relations = indexer.getEntityRelations(model, expressID, attrName);
-      if (!relations) continue;
-      if (!entityRow.children) entityRow.children = [];
-      entityRow.data.relations = JSON.stringify(relations);
-
-      const entityGroups = {};
-      for (const id of relations) {
-        const decompositionRow = await getdecompositionTree(components, model, id, inverseAttributes);
-
-        for (const row of decompositionRow) {
-          if (row.data.relations) {
+let treePanel = null;
+const getdecompositionTree = async (components, model, expressID, inverseAttributes) => {
+  const rows = [];
+  const indexer = components.get(OBC.IfcRelationsIndexer);
+  const entityAttrs = await model.getProperties(expressID);
+  if (!entityAttrs) return rows;
+  const {type} = entityAttrs;
+  const entityRow = {
+    data: {
+      Entity: OBC.IfcCategoryMap[type],
+      Name: entityAttrs.Name?.value,
+      modelID: model.uuid,
+      expressID
+    },
+    children: []
+  };
+  for (const attrName of inverseAttributes) {
+    const relations = indexer.getEntityRelations(model, expressID, attrName);
+    if (!relations) continue;
+    if (!entityRow.children) entityRow.children = [];
+    entityRow.data.relations = JSON.stringify(relations);
+    const entityGroups = {};
+    for (const id of relations) {
+      const decompositionRow = await getdecompositionTree(components, model, id, inverseAttributes);
+      for (const row of decompositionRow) {
+        if (row.data.relations) {
+          entityRow.children.push(row);
+        } else {
+          const data = model.data.get(id);
+          if (!data) {
             entityRow.children.push(row);
-          } else {
-            const data = model.data.get(id);
-            if (!data) {
-              entityRow.children.push(row);
-              continue;
-            }
-            const type = data[1][1];
-            const entity = OBC.IfcCategoryMap[type];
-            if(!(entity in entityGroups)) {
-              entityGroups[entity] = [];
-            }
-            row.data.Entity = row.data.Name;
-            delete row.data.Name;
-            entityGroups[entity].push(row)
+            continue;
           }
+          const type = data[1][1];
+          const entity = OBC.IfcCategoryMap[type];
+          if(!(entity in entityGroups)) {
+            entityGroups[entity] = [];
+          }
+          row.data.Entity = row.data.Name;
+          delete row.data.Name;
+          entityGroups[entity].push(row)
         }
       }
-
-      for (const entity in entityGroups){
-        const children = entityGroups[entity];
-        const relations = children.map((child) => child.data.expressID);
-        const row = {
-          data: {
-            Entity: entity,
-            modelID: model.uuid,
-            relations: JSON.stringify(relations),
-          },
-          children
-        };
-        entityRow.children.push(row);
-      }
     }
-    rows.push(entityRow);
-    return rows;
-  };
-
-  const computeRowData = async (components, models, inverseAttributes, expressID) => {
-    const indexer = components.get(OBC.IfcRelationsIndexer);
-    const rows = [];
-    for (const model of models) {
-      let modelData
-      if (expressID) {
-        modelData = {
-          data: {
-            Entity: model.name !== "" ? model.name : model.uuid,
-          },
-          children: await getdecompositionTree(
-            components,
-            model,
-            expressID,
-            inverseAttributes,
-          ),
-        };
-      } else {
-        const modelRelations = indexer.relationMaps[model.uuid];
-        const projectAttrs = await model.getAllPropertiesOfType(
-          WEBIFC.IFCPROJECT,
-        );
-        if (!(modelRelations && projectAttrs)) continue;
-        const { expressID } = Object.values(projectAttrs)[0];
-        modelData = {
-          data: {
-            Entity: model.name !== "" ? model.name : model.uuid,
-          },
-          children: await getdecompositionTree(
-            components,
-            model,
-            expressID,
-            inverseAttributes,
-          ),
-        };
-      }
-      rows.push(modelData);
+    for (const entity in entityGroups){
+      const children = entityGroups[entity];
+      const relations = children.map((child) => child.data.expressID);
+      const row = {
+        data: {
+          Entity: entity,
+          modelID: model.uuid,
+          relations: JSON.stringify(relations),
+        },
+        children
+      };
+      entityRow.children.push(row);
     }
-    return rows;
-  };
+  }
+  rows.push(entityRow);
+  return rows;
+};
 
-  // Create button and add click handler
-  const treeButton = document.createElement('button');
-  treeButton.textContent = 'Update Tree';
-  treeButton.style.position = 'absolute';
-  treeButton.style.top = '10px';
-  treeButton.style.right = '10px';
-  document.body.appendChild(treeButton);
+const computeRowData = async (components, models, inverseAttributes, expressID) => {
+  const indexer = components.get(OBC.IfcRelationsIndexer);
+  const rows = [];
+  for (const model of models) {
+    
+    let modelData
+    if (expressID) {
+      modelData = {
+        data: {
+          Entity: model.name !== "" ? model.name : model.uuid,
+        },
+        children: await getdecompositionTree(
+          components,
+          model,
+          expressID,
+          inverseAttributes,
+        ),
+      };
+    } else {
+      const modelRelations = indexer.relationMaps[model.uuid];
+      const projectAttrs = await model.getAllPropertiesOfType(
+        WEBIFC.IFCPROJECT,
+      );
+      if (!(modelRelations && projectAttrs)) continue;
+      const { expressID } = Object.values(projectAttrs)[0];
+      modelData = {
+        data: {
+          Entity: model.name !== "" ? model.name : model.uuid,
+        },
+        children: await getdecompositionTree(
+          components,
+          model,
+          expressID,
+          inverseAttributes,
+        ),
+      };
+    }
+    rows.push(modelData);
+  }
+  return rows;  
+};
 
-  treeButton.addEventListener('click', async () => {
-    const test = computeRowData(components,[model],inverseAttributes)
-    console.log(test)
+const getRowFragmentIdMap = (components, rowData) => {
+  const fragments = components.get(OBC.FragmentsManager);
+  const { modelID, expressID, relations } = rowData;
+  if (!modelID) return null;
+  const model = fragments.groups.get(modelID);
+  if (!model) return null;
+  const fragmentIDMap = model.getFragmentMap([
+    expressID,
+    ...JSON.parse(relations ?? "[]"),
+  ]);
+  console.log('Fragment ID Map:', fragmentIDMap);  // Added console.log
+  return fragmentIDMap;
+};
+
+// TREE PANEL
+fragments.onFragmentsLoaded.add(async (model) => {
+  const indexer = components.get(OBC.IfcRelationsIndexer);
+  await indexer.process(model)
+  const inverseAttributes = ["IsDecomposedBy", "ContainsElements"];
+  if (!treePanel) {
+    const sideMenu = document.querySelector('.side-nav');
+    treePanel = document.createElement('div');
+    treePanel.className = 'tree-panel';
+    treePanel.style.display = 'none';
+    treePanel.style.maxHeight = '400px';
+    treePanel.style.overflowY = 'auto';
+    sideMenu.appendChild(treePanel);
+  }
+  const treePanelbutton = document.querySelector('.tree-panel-button');
+  if (!treePanelbutton) return; 
+
+  treePanelbutton.addEventListener('click', () => {  
+    if(treePanel.classList.contains('visible')) {
+      treePanel.classList.remove('visible');
+      treePanel.style.display = 'none';
+    } else{
+      treePanel.style.display = 'block';
+      treePanel.classList.add('visible');
+    }
   });
 
-  const getRowFragmentIdMap = (components, rowData) => {
-    const fragments = components.get(OBC.FragmentsManager);
-    const { modelID, expressID, relations } = rowData;
-    if (!modelID) return null;
-    const model = fragments.groups.get(modelID);
-    if (!model) return null;
-    const fragmentIDMap = model.getFragmentMap([
-      expressID,
-      ...JSON.parse(relations ?? "[]"),
-    ]);
-    console.log('Fragment ID Map:', fragmentIDMap);  // Added console.log
-    return fragmentIDMap;
-  };
+  treePanel.innerHTML = '';
+
+  const treePanelTitle = document.createElement('p');
+  treePanelTitle.textContent = "Model Structure";
+  treePanelTitle.style.fontWeight = 'bold';
+  treePanel.appendChild(treePanelTitle);
+
+  const data =  await computeRowData(components, [model], inverseAttributes);
+  if (data && data.length > 0) {
+    createTreeNode(treePanel, data[0], 0);
+  } else {
+    const noDataMsg = document.createElement('p');
+    noDataMsg.textContent = "No structure data available";
+    treePanel.appendChild(noDataMsg);
+  }
 });
+
+// Recursive function to create tree nodes
+function createTreeNode(parentElement, nodeData, level) {
+  const nodeContainer = document.createElement('div');
+  nodeContainer.className = 'tree-node';
+  nodeContainer.style.paddingLeft = `${level * 15}px`;
+  
+  const nodeHeader = document.createElement('div');
+  nodeHeader.className = 'tree-node-header';
+  
+  // Create expand/collapse toggle if there are children
+  if (nodeData.children && nodeData.children.length > 0) {
+    const toggle = document.createElement('span');
+    toggle.textContent = '▶';
+    toggle.className = 'tree-toggle';
+    toggle.style.cursor = 'pointer';
+    toggle.style.marginRight = '5px';
+    
+    nodeHeader.appendChild(toggle);
+    
+    // Create children container
+    const childrenContainer = document.createElement('div');
+    childrenContainer.className = 'tree-children';
+    childrenContainer.style.display = 'none';
+    
+    // Add toggle functionality
+    toggle.addEventListener('click', () => {
+      if (childrenContainer.style.display === 'none') {
+        childrenContainer.style.display = 'block';
+        toggle.textContent = '▼';
+        
+        // Lazy load children if not already loaded
+        if (childrenContainer.children.length === 0) {
+          nodeData.children.forEach(child => {
+            createTreeNode(childrenContainer, child, level + 1);
+          });
+        }
+      } else {
+        childrenContainer.style.display = 'none';
+        toggle.textContent = '▶';
+      }
+    });
+    
+    nodeContainer.appendChild(nodeHeader);
+    nodeContainer.appendChild(childrenContainer);
+  } else {
+    nodeContainer.appendChild(nodeHeader);
+  }
+  
+  // Add node content
+  const nodeLabel = document.createElement('span');
+  nodeLabel.className = 'tree-node-label';
+  
+  // Format node text based on data available
+  let labelText = nodeData.data.Entity || '';
+  if (nodeData.data.Name) {
+    labelText += ` - ${nodeData.data.Name}`;
+  }
+  nodeLabel.textContent = labelText;
+  
+  // Make nodes selectable/highlightable
+  /* if (nodeData.data.modelID && nodeData.data.expressID) {
+    nodeLabel.style.cursor = 'pointer';
+    nodeLabel.addEventListener('click', () => {
+      highlightElement(nodeData.data);
+    });
+  } */
+  
+  nodeHeader.appendChild(nodeLabel);
+  parentElement.appendChild(nodeContainer);
+}
 
 // LOADED MODELS PANEL(WINDOW)
 const loadedModels = [];
 let dataPanel = null;
-let eventListenerAdded = false
+let eventListenerAdded = false;
 fragments.onFragmentsLoaded.add((model) => {
-
   if (!model) return;
   loadedModels.push({
     name: model.name,

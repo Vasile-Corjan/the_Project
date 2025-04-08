@@ -134,6 +134,9 @@ body {
   transform: translateX(0);
 }
 
+.tree-panel{
+  background-color: #ddd;
+}
 
 #camera-view {
   position: fixed;
