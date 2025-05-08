@@ -135,7 +135,9 @@ body {
 }
 
 .tree-panel{
-  background-color: #ddd;
+  background-color: whitesmoke;
+  max-height: 80vh;
+  overflow-y: auto;
 }
 
 #camera-view {
