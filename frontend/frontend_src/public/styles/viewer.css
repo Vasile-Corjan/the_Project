@@ -135,9 +135,20 @@ body {
 }
 
 .tree-panel{
+  display: absolute;
+  top: 0;
+  left: 100%;
   background-color: whitesmoke;
-  max-height: 80vh;
-  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 10px;
+  width: 364px;
+  height: 136px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  z-index: 101;
+  margin-left: 10px;
+  margin-top: 15px;
+  height: fit-content;
 }
 
 #camera-view {

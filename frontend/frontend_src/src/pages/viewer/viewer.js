@@ -7,7 +7,7 @@ import * as WEBIFC from "web-ifc";
 // Import UI functions
 import { 
   initializePanels, 
-  updateDataPanel, 
+  //updateDataPanel,
   getLoadedModels
 } from "./ui.js";
 

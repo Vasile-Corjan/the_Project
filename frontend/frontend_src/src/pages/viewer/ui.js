@@ -40,7 +40,7 @@ export async function setupTreePanel(components, fragments) {
 async function handleTreeForModel(model, components, fragments) {
   const indexer = components.get(OBC.IfcRelationsIndexer);
   await indexer.process(model);
-  const inverseAttributes = ["IsDecomposedBy", "ContainsElements"];
+  // const inverseAttributes = ["IsDecomposedBy", "ContainsElements"];
   
   // Store model reference for later updates
   if (!treeModels.includes(model.uuid)) {
@@ -55,8 +55,6 @@ async function handleTreeForModel(model, components, fragments) {
     treePanel = document.createElement('div');
     treePanel.className = 'tree-panel';
     treePanel.style.display = 'none';
-    treePanel.style.maxHeight = '400px';
-    treePanel.style.overflowY = 'auto';
     sideMenu.appendChild(treePanel);
   }
   
@@ -107,14 +105,7 @@ async function updateTreePanelWithAllModels(components, fragments) {
   
   // Clean up the model list to remove any disposed models
   treeModels = validModels.map(model => model.uuid);
-  
-  if (validModels.length === 0) {
-    const noDataMsg = document.createElement('p');
-    noDataMsg.textContent = "No models loaded";
-    treePanel.appendChild(noDataMsg);
-    return;
-  }
-  
+
   // Get data for all models
   const data = await computeRowData(components, validModels, inverseAttributes);
   
