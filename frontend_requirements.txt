@@ -1,0 +1,8 @@
+"@thatopen/components": "^2.4.6",
+"@thatopen/components-front": "^2.4.6",
+"@thatopen/ui": "^2.4.1",
+"@thatopen/ui-obc": "^2.4.1", # DEPENDECY PROBLEM - NOT INSTALLED YET
+"axios": "^1.7.9",
+"jwt-decode": "^4.0.0",
+"three": "^0.160.1",
+"web-ifc": "^0.0.66"

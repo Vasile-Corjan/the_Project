@@ -1,17 +1,20 @@
 import * as THREE from "three";
 import * as OBC from "@thatopen/components";
 import * as OBCF from "@thatopen/components-front";
+import * as FRAGS from "@thatopen/fragments"
 import * as BUI from "@thatopen/ui";
-import * as CUI from "@thatopen/ui-obc";
+//import * as CUI from "@thatopen/ui-obc";
 import * as WEBIFC from "web-ifc";
 // Import UI functions
 import { 
   initializePanels, 
-  //updateDataPanel,
-  getLoadedModels
+  updateDataPanel,
+  getLoadedModels,
+  showPropertiesTable,
+  createSelectionInfoPanel,
 } from "./ui.js";
 
-BUI.Manager.init();
+//BUI.Manager.init();
 
 const container = document.getElementById("container");
 
@@ -93,15 +96,15 @@ postproduction.customEffects.excludedMeshes.push(grid.three) // Excludes the gri
 
 // Ambient Occlusion settings
 const ao = postproduction.n8ao.configuration;
-ao.aoRadius = 10.0; // Radius of AO effect (default: 5.0)
+ao.aoRadius = 8.0; // Radius of AO effect (default: 5.0)
 ao.intensity = 1.5; // Strength of the AO effect (default: 1.0)
-ao.denoiseSamples = 16; // Number of samples for denoising (default: 8)
-ao.denoiseRadius = 12; // Radius for denoising (default: 12)
-ao.screenSpaceRadius = true;
+ao.denoiseSamples = 8; // Number of samples for denoising (default: 8)
+ao.denoiseRadius = 6; // Radius for denoising (default: 12)
+ao.screenSpaceRadius = false;
 // Gamma correction settings
 postproduction.setPasses({gamma: true,
   custom: true,
-  ao: true
+  ao: false
 })
 
 // HIGHLIGHTER
@@ -188,13 +191,15 @@ const blackLine = new THREE.LineBasicMaterial({color: "black"});
 const clipperColor = new THREE.Color("#FBF0C3");
 edges.styles.create("Outline",world.meshes,world,blackLine);
 
-document.getElementById("clip").addEventListener('click', () => {
+
+document.getElementById('clip').addEventListener('click', () => {
   clipper.enabled = true;
 });
 
 container.ondblclick = () =>{
   if(clipper.enabled){
     clipper.create(world);
+    clipper.visible = true;
     clipper.size = 18;
     clipper.material.color = clipperColor;
 
@@ -255,6 +260,28 @@ document.getElementById("dim").addEventListener('click', () =>{
     };
   }
 });
+
+
+highlighter.events.select.onHighlight.add(async (fragmentIdMap) => {
+  if(fragmentIdMap){
+    const state = true;
+    await showPropertiesTable(components, fragments, fragmentIdMap);
+    createSelectionInfoPanel(state)
+  }
+  console.log(showPropertiesTable(components, fragments, fragmentIdMap))  
+});
+
+// Clear the selection
+highlighter.events.select.onClear.add(() => {
+  const state = false;
+  createSelectionInfoPanel(state)
+  showPropertiesTable(components, fragments, {fragmentIdMap: {}})
+})
+
+
+// #1 source https://github.com/ThatOpen/engine_ui-components/blob/main/packages/obc/src/components/tables/ElementProperties/src/attributes-row.ts
+// #2 source https://docs.thatopen.com/Tutorials/UserInterface/OBC/ElementProperties
+// model.getFragmentMap(expressID) GET THE FRAGMENT ID MAP
 
 // END DIMENSIONS CREATION
 window.onkeydown = (event) => {

@@ -1,4 +1,5 @@
 import * as OBC from "@thatopen/components";
+import { Pass } from "three/examples/jsm/postprocessing/Pass.js";
 import * as WEBIFC from "web-ifc";
 
 // Shared variables for panels
@@ -65,7 +66,12 @@ async function handleTreeForModel(model, components, fragments) {
         treePanel.classList.remove('visible');
         treePanel.style.display = 'none';
       } else {
-        // Update all models when panel is opened
+
+        if (dataPanel && dataPanel.classList.contains('visible')) {
+          dataPanel.classList.remove('visible');
+          dataPanel.style.display = 'none';
+        }
+
         await updateTreePanelWithAllModels(components, fragments);
         treePanel.style.display = 'block';
         treePanel.classList.add('visible');
@@ -89,7 +95,6 @@ async function updateTreePanelWithAllModels(components, fragments) {
   // Add title
   const treePanelTitle = document.createElement('p');
   treePanelTitle.textContent = "Model Structure";
-  treePanelTitle.style.fontWeight = 'bold';
   treePanel.appendChild(treePanelTitle);
   
   const inverseAttributes = ["IsDecomposedBy", "ContainsElements"];
@@ -115,8 +120,8 @@ async function updateTreePanelWithAllModels(components, fragments) {
       // Add a separator between models except for the first one
       if (index > 0) {
         const separator = document.createElement('hr');
-        separator.style.margin = '10px 0';
-        separator.style.borderTop = '1px solid #ccc';
+        //separator.style.margin = '10px 0';
+        //separator.style.borderTop = '1px solid #ccc';
         treePanel.appendChild(separator);
       }
       
@@ -140,7 +145,7 @@ async function updateTreePanelWithAllModels(components, fragments) {
 function createTreeNode(parentElement, nodeData, level) {
   const nodeContainer = document.createElement('div');
   nodeContainer.className = 'tree-node';
-  nodeContainer.style.paddingLeft = `${level * 15}px`;
+  nodeContainer.style.paddingLeft = `${level * 1.5}px`;
   
   const nodeHeader = document.createElement('div');
   nodeHeader.className = 'tree-node-header';
@@ -231,8 +236,9 @@ function handleModelLoaded(model, components, fragments) {
     const sideMenu = document.querySelector('.side-nav');
     dataPanel = document.createElement('div');
     dataPanel.className = 'data-panel';
+    dataPanel.style.display = 'none';
     sideMenu.appendChild(dataPanel);
-  }
+  }  
   
   if (!eventListenerAddedModels) {
     eventListenerAddedModels = true;
@@ -241,6 +247,13 @@ function handleModelLoaded(model, components, fragments) {
         dataPanel.classList.remove('visible');
         dataPanel.style.display = 'none';
       } else {
+
+        if(treePanel && treePanel.classList.contains('visible')){
+          treePanel.classList.remove('visible');
+          treePanel.style.display = 'none';
+        }
+
+
         updateDataPanel(dataPanel, components, fragments);
         dataPanel.style.display = 'block';
         dataPanel.classList.add('visible');
@@ -458,3 +471,87 @@ export function getRowFragmentIdMap(components, rowData) {
 
 // Export the models array to allow access from other files if needed
 export const getLoadedModels = () => [...loadedModels];
+
+
+async function createRows(attrs){
+  const attrsToIgnore = ["OwnerHistory", "ObjectPlacement", "CompositionType"];
+  const attrRows = {};
+  if (!attrRows.children) attrRows.children = [];
+
+  attrRows.children.push({
+    data: {
+      Name: "Class",
+      Value: OBC.IfcCategoryMap[attrs.type],
+    },
+  });
+
+  for (const attrName in attrs) {
+    if(attrsToIgnore.includes(attrName)) continue;
+    const attrValue = attrs[attrName];
+    if (!attrValue) continue;
+    if (typeof attrValue === "object" && !Array.isArray(attrValue)) {
+      if (attrValue.type === WEBIFC.REF) continue;
+      const valueRow = {
+        data: {Name: attrName, Value: attrValue.value}
+      }
+      attrRows.children.push(valueRow);
+    };
+  };
+  return attrRows;
+}
+
+export async function showPropertiesTable(components, fragments, fragmentIdMap) {
+  const indexer = components.get(OBC.IfcRelationsIndexer);
+  let processedElements = {};
+  const modelIdMap = fragments.getModelIdMap(fragmentIdMap);//This outputs the modelId from the selected fragmentId
+  
+  if (Object.keys(fragmentIdMap).length === 0) processedElements = {};
+  const rows = []
+  for (const modelID in modelIdMap) {
+    const model = fragments.groups.get(modelID);
+    if (!model) continue;
+    const modelRelations = indexer.relationMaps[model.uuid];
+    if (!modelRelations) continue;
+    if (!(modelID in processedElements)) processedElements[modelID] = new Map();
+    const modelProcessings = processedElements[modelID];
+    const expressIDs = modelIdMap[modelID];
+    for (const expressID of expressIDs) {
+      let elementRow = modelProcessings.get(expressID);
+      
+      if (elementRow) {
+        rows.push(elementRow);
+        continue;
+      }
+
+      const elementAttrs = await model.getProperties(expressID);
+      if (!elementAttrs) continue;
+
+      elementRow = {
+        data: {
+          Name: elementAttrs.Name?.value,
+        },
+      };
+
+      rows.push(elementRow);
+      modelProcessings.set(expressID, elementRow);
+
+      const attributesRow = await createRows(elementAttrs);
+      if (!elementRow.children) elementRow.children = [];
+      elementRow.children.push(attributesRow);
+    }
+  }
+  return rows;
+}
+
+export function createSelectionInfoPanel(state) {
+  const theContainer = document.querySelector(".selection-nav");
+  const selectionPanel = document.createElement('nav');
+  selectionPanel.className = 'selection-panel';
+  theContainer.innerHTML = '';
+  if(!state){
+    theContainer.style.display = 'none';
+    return;
+  }
+  theContainer.style.display = 'block';
+  theContainer.appendChild(selectionPanel);
+}
