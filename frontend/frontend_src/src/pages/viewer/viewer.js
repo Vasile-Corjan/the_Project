@@ -254,6 +254,7 @@ document.getElementById("dim").addEventListener('click', () =>{
               dimensions.enabled = false;
             }
             document.getElementById("container").removeChild(deleteDimension);
+            highlighter.enabled = true;
           });
         };
       }
@@ -265,10 +266,9 @@ document.getElementById("dim").addEventListener('click', () =>{
 highlighter.events.select.onHighlight.add(async (fragmentIdMap) => {
   if(fragmentIdMap){
     const state = true;
-    await showPropertiesTable(components, fragments, fragmentIdMap);
-    createSelectionInfoPanel(state)
-  }
-  console.log(showPropertiesTable(components, fragments, fragmentIdMap))  
+    const properties = await showPropertiesTable(components, fragments, fragmentIdMap);
+    createSelectionInfoPanel(state, properties)
+  } 
 });
 
 // Clear the selection

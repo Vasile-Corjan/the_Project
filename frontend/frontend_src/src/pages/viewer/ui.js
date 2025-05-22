@@ -1,5 +1,4 @@
 import * as OBC from "@thatopen/components";
-import { Pass } from "three/examples/jsm/postprocessing/Pass.js";
 import * as WEBIFC from "web-ifc";
 
 // Shared variables for panels
@@ -472,7 +471,7 @@ export function getRowFragmentIdMap(components, rowData) {
 // Export the models array to allow access from other files if needed
 export const getLoadedModels = () => [...loadedModels];
 
-
+// Creates rows with attributes
 async function createRows(attrs){
   const attrsToIgnore = ["OwnerHistory", "ObjectPlacement", "CompositionType"];
   const attrRows = {};
@@ -499,6 +498,21 @@ async function createRows(attrs){
   };
   return attrRows;
 }
+
+// Creates rows with 
+const processContainerRelations = async (components, model, expressID, row,) => {
+  const indexer = components.get(OBC.IfcRelationsIndexer);
+  const containerRelations = indexer.getEntityRelations(model, expressID, "ContainedInStructure");
+
+  if (containerRelations && containerRelations[0]) {
+    const containerID = containerRelations[0];
+    const container = await model.getProperties(containerID);
+    if (container) {
+      const attributesRow = await createRows(container);
+      row.children.push(attributesRow);
+    }
+  }
+};
 
 export async function showPropertiesTable(components, fragments, fragmentIdMap) {
   const indexer = components.get(OBC.IfcRelationsIndexer);
@@ -538,20 +552,75 @@ export async function showPropertiesTable(components, fragments, fragmentIdMap) 
       const attributesRow = await createRows(elementAttrs);
       if (!elementRow.children) elementRow.children = [];
       elementRow.children.push(attributesRow);
+      await processContainerRelations(components, model, expressID, elementRow)
     }
   }
   return rows;
 }
 
-export function createSelectionInfoPanel(state) {
+export function createSelectionInfoPanel(state, propertiesRows) {
   const theContainer = document.querySelector(".selection-nav");
-  const selectionPanel = document.createElement('nav');
-  selectionPanel.className = 'selection-panel';
+  
   theContainer.innerHTML = '';
+  
   if(!state){
     theContainer.style.display = 'none';
     return;
   }
+  
   theContainer.style.display = 'block';
+
+  const selectionPanel = document.createElement('nav');
+  selectionPanel.className = 'selection-panel';
+  
+  // Create the header
+  const header = document.createElement('div');
+  header.className = 'selection-panel-header';
+  
+  const headerTitle = document.createElement('h3');
+  headerTitle.textContent = 'Selection info';
+
+  const closeBtn = document.createElement('button');
+  closeBtn.innerHTML = '&times';
+  closeBtn.onclick = () => theContainer.style.display = 'none';
+
+  header.appendChild(headerTitle);
+  header.appendChild(closeBtn);
+  selectionPanel.appendChild(header);
+  
+  // Create the properties table
+  if (propertiesRows && propertiesRows.length > 0){
+    const element = propertiesRows[0];
+    console.log(element)
+
+    if (element.children && element.children.length > 0){
+      const attributesRow = element.children[0];
+      console.log(attributesRow)
+      if (attributesRow.children && attributesRow.children.length > 0){
+        const propsContainer = document.createElement('div');
+        propsContainer.className = 'properties-container';
+
+        attributesRow.children.forEach(prop => {
+          const propRow = document.createElement('div');
+          propRow.className = 'property-row';
+
+          const propName = document.createElement('span');
+          propName.className = 'property-name';
+          propName.textContent = prop.data.Name;
+
+          
+          const propValue = document.createElement('span');
+          propValue.className = 'property-value';
+          propValue.textContent = prop.data.Value;
+
+          propRow.appendChild(propName);
+          propRow.appendChild(propValue);
+          propsContainer.appendChild(propRow);
+          
+        });
+        selectionPanel.appendChild(propsContainer);
+      }
+    }
+  }   
   theContainer.appendChild(selectionPanel);
 }
