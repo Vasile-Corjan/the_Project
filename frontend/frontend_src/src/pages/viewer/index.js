@@ -12,6 +12,8 @@ export async function Viewer() {
       viewerScript.type = 'module';
       viewerScript.src = '/src/pages/viewer/viewer.js';
       document.body.appendChild(viewerScript);
+      
+
     }, 100);
     
     return html;

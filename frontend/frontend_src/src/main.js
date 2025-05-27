@@ -9,9 +9,9 @@ const routes = {
   "/": Home,
   "/signin": SignIn,
   "/signup": Register,
-  "/viewer": Viewer,
   "/profile": Profile,
-  "/project": Project // URL structure .../username/project name
+  "/project": Project, // URL structure .../username/project name
+  "/viewer": Viewer,
 }
 
 const cache = {};

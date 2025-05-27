@@ -331,24 +331,7 @@ body {
 .profile-form li {
   margin-bottom: 0.5rem;
 }
-.profile-actions {
-  display: flex;
-  gap: 1rem;
-  margin-top: 2rem;
-}
 
-.profile-actions button {
-  padding: 0.5rem 1rem;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  background-color: #007bff;
-  color: white;
-}
-
-.profile-actions button:hover {
-  background-color: #0056b3;
-}
 
 /*Responsive styles */
 @media(max-width: 1200px) {

@@ -191,11 +191,12 @@ hr {
 
 .selection-panel{
   max-height: 100%;
-  height: 400px;
+  height: fit-content;
   width: 350px; /* width:fit-content */
   background-color: whitesmoke;
   border-radius: 8px;
   font-size: 14px;
+  overflow-y: scroll;
 }
 
 .selection-panel-header{
@@ -220,10 +221,21 @@ hr {
   cursor: pointer;
 }
 
+.attribute-type{
+  font-weight: bold;
+  padding: 8px 12px;
+
+}
+
+.set-header{
+  padding: 6px 12px;
+  border-bottom: 1px solid #ccc;
+}
+
 .property-row{
   display: flex;
   justify-content: space-between;
-  padding: 6px 15px;
+  padding: 4px 12px;
   border-bottom: 1px solid #ccc;
 }
 

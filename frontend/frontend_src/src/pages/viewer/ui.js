@@ -472,9 +472,9 @@ export function getRowFragmentIdMap(components, rowData) {
 export const getLoadedModels = () => [...loadedModels];
 
 // Creates rows with attributes
-async function createRows(attrs){
+async function createRows(attrs, options = {data:{Name:"Attributes"}}){
   const attrsToIgnore = ["OwnerHistory", "ObjectPlacement", "CompositionType"];
-  const attrRows = {};
+  const attrRows = { data: {Name: options.data?.Name || "Attributes"}};
   if (!attrRows.children) attrRows.children = [];
 
   attrRows.children.push({
@@ -499,7 +499,7 @@ async function createRows(attrs){
   return attrRows;
 }
 
-// Creates rows with 
+// Creates rows with attributes about Containment
 const processContainerRelations = async (components, model, expressID, row,) => {
   const indexer = components.get(OBC.IfcRelationsIndexer);
   const containerRelations = indexer.getEntityRelations(model, expressID, "ContainedInStructure");
@@ -508,12 +508,102 @@ const processContainerRelations = async (components, model, expressID, row,) => 
     const containerID = containerRelations[0];
     const container = await model.getProperties(containerID);
     if (container) {
-      const attributesRow = await createRows(container);
+      const attributesRow = await createRows(container,{data: {Name:"SpatialContainment"}});
       row.children.push(attributesRow);
     }
   }
 };
 
+const createPsetsRow = async (model, psets) => {
+  const row = { data: { Name: "PropertySets" } };
+  for (const pset of psets) {
+    const setRow = {data: { Name: pset.Name?.value },};
+    if (pset.type !== WEBIFC.IFCPROPERTYSET) continue;
+    for (const propHandle of pset.HasProperties) {
+      const { value: propID } = propHandle;
+      const propAttrs = await model.getProperties(propID);
+      if (!propAttrs) continue;
+      const valueKey = Object.keys(propAttrs).find((attr) =>
+        attr.includes("Value"),
+      );
+      if (!(valueKey && propAttrs[valueKey])) continue;
+      let value = propAttrs[valueKey].value;
+      let symbol = "";
+      const propRow = {
+        data: {
+          Name: propAttrs.Name?.value,
+          Value: `${value} ${symbol ?? ""}`,
+        },
+      };
+      if (!setRow.children) setRow.children = [];
+      setRow.children.push(propRow);
+    }
+    if (!setRow.children) continue;
+    if (!row.children) row.children = [];
+    row.children.push(setRow);
+  }
+  return row;
+};
+
+const createQsetsRow = async(model, qsets) => {
+  const row = {data: {Name: "QuantitySets"}};
+  for (const qset of qsets) {
+    const setRow = {data: {Name: qset.Name?.value},};
+    if (qset.type !== WEBIFC.IFCELEMENTQUANTITY) continue;
+    for (const qtoHandle of qset.Quantities){
+      const {value: propID} = qtoHandle;
+      const propAttrs = await model.getProperties(propID);
+      if (!propAttrs) continue;
+      const valueKey = Object.keys(propAttrs).find((attr) =>
+        attr.includes("Value"),
+      );
+      if (!(valueKey && propAttrs[valueKey])) continue;
+      let value = propAttrs[valueKey].value;
+      let symbol = "";
+      const propRow = {
+        data: {
+          Name: propAttrs.Name?.value,
+          Value: `${value} ${symbol ?? ""}`,
+        },
+      };
+      if (!setRow.children) setRow.children = [];
+      setRow.children.push(propRow);
+    }
+    if (!setRow.children) continue;
+    if (!row.children) row.children = [];
+    row.children.push(setRow);
+  }
+  return row;
+}
+
+const processDefinedByRelations = async (components, model, expressID, row) => {
+  const indexer = components.get(OBC.IfcRelationsIndexer);
+  const definedByRelations = indexer.getEntityRelations(
+    model,
+    expressID,
+    "IsDefinedBy",
+  );
+
+  if (definedByRelations) {
+    const psets = [];
+    const qsets = [];
+
+    for (const definition of definedByRelations) {
+      const attrs = await model.getProperties(definition);
+      if (!attrs) continue;
+      if (attrs.type === WEBIFC.IFCPROPERTYSET) psets.push(attrs);
+      if (attrs.type === WEBIFC.IFCELEMENTQUANTITY) qsets.push(attrs);
+    }
+
+    const psetRow = await createPsetsRow(model, psets,);
+    if (psetRow.children) row.children.push(psetRow); 
+
+    const qsetRow = await createQsetsRow(model, qsets);
+    if (qsetRow.children) row.children.push(qsetRow); 
+  }
+};
+
+// Create the Properties Table 
 export async function showPropertiesTable(components, fragments, fragmentIdMap) {
   const indexer = components.get(OBC.IfcRelationsIndexer);
   let processedElements = {};
@@ -536,10 +626,8 @@ export async function showPropertiesTable(components, fragments, fragmentIdMap) 
         rows.push(elementRow);
         continue;
       }
-
       const elementAttrs = await model.getProperties(expressID);
       if (!elementAttrs) continue;
-
       elementRow = {
         data: {
           Name: elementAttrs.Name?.value,
@@ -552,24 +640,41 @@ export async function showPropertiesTable(components, fragments, fragmentIdMap) 
       const attributesRow = await createRows(elementAttrs);
       if (!elementRow.children) elementRow.children = [];
       elementRow.children.push(attributesRow);
-      await processContainerRelations(components, model, expressID, elementRow)
+      await processDefinedByRelations(components, model, expressID, elementRow);
+      await processContainerRelations(components, model, expressID, elementRow);
     }
   }
+  console.log(rows)
   return rows;
 }
 
+// Create the UI panel 
 export function createSelectionInfoPanel(state, propertiesRows) {
   const theContainer = document.querySelector(".selection-nav");
-  
   theContainer.innerHTML = '';
   
-  if(!state){
+  if (!state) {
     theContainer.style.display = 'none';
     return;
   }
   
   theContainer.style.display = 'block';
+  const selectionPanel = createPanelElement();
+  theContainer.appendChild(selectionPanel);
+  
+  if (!propertiesRows || propertiesRows.length === 0) return;
+  
+  const element = propertiesRows[0];
+  if (!element.children || element.children.length === 0) return;
+  
+  // First render standard attributes
+  renderStandardAttributes(element.children, selectionPanel);
+  
+  // Then render property and quantity sets
+  renderPropertyAndQuantitySets(element.children, selectionPanel);
+}
 
+function createPanelElement() {
   const selectionPanel = document.createElement('nav');
   selectionPanel.className = 'selection-panel';
   
@@ -582,45 +687,140 @@ export function createSelectionInfoPanel(state, propertiesRows) {
 
   const closeBtn = document.createElement('button');
   closeBtn.innerHTML = '&times';
-  closeBtn.onclick = () => theContainer.style.display = 'none';
+  closeBtn.onclick = () => document.querySelector(".selection-nav").style.display = 'none';
 
   header.appendChild(headerTitle);
   header.appendChild(closeBtn);
   selectionPanel.appendChild(header);
   
-  // Create the properties table
-  if (propertiesRows && propertiesRows.length > 0){
-    const element = propertiesRows[0];
-    console.log(element)
+  return selectionPanel;
+}
 
-    if (element.children && element.children.length > 0){
-      const attributesRow = element.children[0];
-      console.log(attributesRow)
-      if (attributesRow.children && attributesRow.children.length > 0){
-        const propsContainer = document.createElement('div');
-        propsContainer.className = 'properties-container';
-
-        attributesRow.children.forEach(prop => {
-          const propRow = document.createElement('div');
-          propRow.className = 'property-row';
-
-          const propName = document.createElement('span');
-          propName.className = 'property-name';
-          propName.textContent = prop.data.Name;
-
-          
-          const propValue = document.createElement('span');
-          propValue.className = 'property-value';
-          propValue.textContent = prop.data.Value;
-
-          propRow.appendChild(propName);
-          propRow.appendChild(propValue);
-          propsContainer.appendChild(propRow);
-          
-        });
-        selectionPanel.appendChild(propsContainer);
-      }
+function renderStandardAttributes(attributesRows, parentElement) {
+  attributesRows.forEach(attributesRow => {
+    if (!attributesRow.data || 
+        attributesRow.data.Name === "PropertySets" || 
+        attributesRow.data.Name === "QuantitySets") {
+      return;
     }
-  }   
-  theContainer.appendChild(selectionPanel);
+    
+    // Create section header
+    const elementContainerName = document.createElement('div');
+    elementContainerName.className = 'attribute-type';
+    elementContainerName.innerHTML = `<span>${attributesRow.data.Name}</span>`;
+    elementContainerName.style.fontWeight = 'bold';
+    parentElement.appendChild(elementContainerName);
+    
+    // Create properties container if children exist
+    if (attributesRow.children && attributesRow.children.length > 0) {
+      const propsContainer = document.createElement('div');
+      propsContainer.className = 'properties-container';
+      
+      // Add each property
+      attributesRow.children.forEach(prop => {
+        propsContainer.appendChild(createPropertyRow(prop.data.Name, prop.data.Value));
+      });
+      
+      parentElement.appendChild(propsContainer);
+    }
+  });
+}
+
+function renderPropertyAndQuantitySets(attributesRows, parentElement) {
+  attributesRows.forEach(attributesRow => {
+    // Skip if not a property or quantity set or if it has no children
+    if (!attributesRow.data || 
+        (attributesRow.data.Name !== "PropertySets" && attributesRow.data.Name !== "QuantitySets") ||
+        !attributesRow.children || 
+        attributesRow.children.length === 0) {
+      return;
+    }
+    
+    // Create collapsible section header for the main category (PropertySets or QuantitySets)
+    const setsHeader = createCollapsibleHeader(attributesRow.data.Name);
+    parentElement.appendChild(setsHeader);
+    
+    // Create container for all property sets (initially hidden)
+    const setsContainer = document.createElement('div');
+    setsContainer.className = 'sets-container';
+    setsContainer.style.display = 'none';
+    parentElement.appendChild(setsContainer);
+    
+    // Add toggle behavior to the main category header
+    setsHeader.addEventListener('click', () => {
+      toggleCollapsible(setsHeader, setsContainer, attributesRow.data.Name);
+    });
+    
+    // Add each property set to the container
+    attributesRow.children.forEach(set => {
+      if (!set.data || !set.data.Name || !set.children || set.children.length === 0) {
+        return;
+      }
+      
+      // Create collapsible set section
+      const setSection = document.createElement('div');
+      setSection.className = 'property-set';
+      
+      const setHeader = createCollapsibleHeader(set.data.Name);
+      setHeader.className = 'set-header';
+      setSection.appendChild(setHeader);
+      
+      // Create set content container
+      const setContent = document.createElement('div');
+      setContent.className = 'set-content';
+      setContent.style.display = 'none';
+      
+      // Add toggle behavior
+      setHeader.addEventListener('click', (event) => {
+        event.stopPropagation();
+        toggleCollapsible(setHeader, setContent, set.data.Name);
+      });
+      
+      // Add each property to the set
+      set.children.forEach(prop => {
+        setContent.appendChild(createPropertyRow(prop.data.Name, prop.data.Value));
+      });
+      
+      setSection.appendChild(setContent);
+      setsContainer.appendChild(setSection);
+    });
+  });
+}
+
+
+function createCollapsibleHeader(title) {
+  const header = document.createElement('div');
+  header.className = 'attribute-type';
+  header.innerHTML = `▶ ${title}`;
+  header.style.cursor = 'pointer';
+  
+  return header;
+}
+
+function toggleCollapsible(header, content, title) {
+  if (content.style.display === 'none') {
+    content.style.display = 'block';
+    header.innerHTML = `▼ ${title}`;
+  } else {
+    content.style.display = 'none';
+    header.innerHTML = `▶ ${title}`;
+  }
+}
+
+function createPropertyRow(name, value) {
+  const propRow = document.createElement('div');
+  propRow.className = 'property-row';
+  
+  const propName = document.createElement('span');
+  propName.className = 'property-name';
+  propName.textContent = name;
+  
+  const propValue = document.createElement('span');
+  propValue.className = 'property-value';
+  propValue.textContent = value;
+  
+  propRow.appendChild(propName);
+  propRow.appendChild(propValue);
+  
+  return propRow;
 }
