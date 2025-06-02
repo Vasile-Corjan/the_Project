@@ -10,10 +10,12 @@ export async function Register() {
                   e.preventDefault();
                   
                   const formData = {
+                      first_name: form.first_name.value,
+                      last_name: form.last_name.value,
                       username: form.username.value,
                       email: form.email.value,
                       password: form.password.value,
-                      password2: form.password.value
+                      confirm_password: form.confirm_password.value
                   };
 
                   try {
@@ -28,11 +30,33 @@ export async function Register() {
                       const data = await response.json();
 
                       if (response.ok) {
+                        const loginResponse = await fetch('http://localhost:8000/api/token/',{
+                          method: 'POST',
+                          headers: {
+                            'Content-Type': 'application/json',
+                          },
+                          body: JSON.stringify({
+                            username: formData.username,
+                            password: formData.password
+                          })
+                        });
+
+                        const tokenData = await loginResponse.json();
+                        
+                        if(loginResponse.ok){
+                          localStorage.setItem('access_token', tokenData.access);
+                          localStorage.setItem('refresh_token', tokenData.refresh);
+                          localStorage.setItem('username', formData.username);
+
+                          
                           alert('Registration successful!');
-                          window.location.href = '/viewer';
-                      } else {
+                          window.location.href = '/profile';
+                        } else {
                           alert(`Registration failed: ${JSON.stringify(data)}`);
+                          window.location.href = '/home';
                       }
+
+                      } 
                   } catch (error) {
                       console.error('Error:', error);
                       alert('Registration failed. Please try again.');

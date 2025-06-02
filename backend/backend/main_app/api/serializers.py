@@ -5,21 +5,30 @@ from django.contrib.auth.password_validation import validate_password
 
 class UserSerializer(serializers.ModelSerializer):
   password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
-  password2 = serializers.CharField(write_only=True, required=True)
+  confirm_password = serializers.CharField(write_only=True, required=True)
+  first_name = serializers.CharField(required=True)
+  last_name = serializers.CharField(required=True)
+  email = serializers.EmailField(required=True)
   class Meta:
     model = User
-    fields = ("id", "username", "password", "password2", "email")
-    extra_kwargs = {"password": {"write_only": True}}
+    fields = ("id", "first_name", "last_name", "username", "password", "confirm_password", "email")
 
   def validate(self, attrs):
-    if attrs['password'] != attrs['password2']:
-      raise serializers.ValidationError({"password": "Password fields didn't match."})
+    if attrs['password'] != attrs['confirm_password']:
+      raise serializers.ValidationError({"password": "Password fields don't match."})
+    
+    email = attrs.get('email')
+    if User.objects.filter(email=email).exists():
+      raise serializers.ValidationError({"email": "A user with this email already exists."})
+    
     return attrs
 
   def create(self, validate_data):
     user = User(
       email = validate_data['email'],
-      username = validate_data['username']
+      username = validate_data['username'],
+      first_name = validate_data['first_name'],
+      last_name = validate_data['last_name']
     )
     user.set_password(validate_data['password'])
     user.save()

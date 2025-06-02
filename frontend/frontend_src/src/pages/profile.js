@@ -20,7 +20,7 @@ export async function Profile() {
   // Check if user is authenticated
   const token = localStorage.getItem('access_token');
   if (!token) {
-    window.location.href = '/profile';
+    window.location.href = '/signin';
   }
 
   // Fetch the HTML template

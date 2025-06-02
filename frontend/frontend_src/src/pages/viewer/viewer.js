@@ -279,10 +279,6 @@ highlighter.events.select.onClear.add(() => {
 })
 
 
-// #1 source https://github.com/ThatOpen/engine_ui-components/blob/main/packages/obc/src/components/tables/ElementProperties/src/attributes-row.ts
-// #2 source https://docs.thatopen.com/Tutorials/UserInterface/OBC/ElementProperties
-// model.getFragmentMap(expressID) GET THE FRAGMENT ID MAP
-
 // END DIMENSIONS CREATION
 window.onkeydown = (event) => {
   if (event.code === "Escape") {
