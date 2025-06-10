@@ -644,7 +644,6 @@ export async function showPropertiesTable(components, fragments, fragmentIdMap) 
       await processContainerRelations(components, model, expressID, elementRow);
     }
   }
-  console.log(rows)
   return rows;
 }
 

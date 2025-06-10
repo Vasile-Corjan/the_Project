@@ -1,7 +1,7 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password
-
+from main_app.models import Project
 
 class UserSerializer(serializers.ModelSerializer):
   password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
@@ -33,3 +33,9 @@ class UserSerializer(serializers.ModelSerializer):
     user.set_password(validate_data['password'])
     user.save()
     return user
+
+class ProjectSerializer(serializers.ModelSerializer):
+  class Meta:
+    model = Project
+    fields = ('id', 'name', 'created_at', 'updated_at')
+    read_only_fields = ['owner']

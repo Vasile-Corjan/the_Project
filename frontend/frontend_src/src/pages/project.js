@@ -7,8 +7,8 @@ export async function Project() {
     html,
     afterRender: function() {
       const urlParams = new URLSearchParams(window.location.search);
-      const projectName = urlParams.get('name') || 'Default Project';
-
+      const projectName = urlParams.get('name') || 'Unnamed Project';
+      const projectId = urlParams.get('id');
 
       setupHeaderNavigation(projectName);
 
@@ -21,54 +21,6 @@ export async function Project() {
     }
   }
 }
-
-/**
- * Sets up the navigation in the header bar with user and project information.
- * 
- * Creates a navigation list with:
- * - Username (linked to profile page)
- * - Separator (/)
- * - Project name
- * 
- * The navigation is appended to the left side of the application header.
- * 
- * @param {string} projectName - The name of the current project to display in the navigation
- * @returns {void} - Returns early if the header left element is not found
- */
-function setupHeaderNavigation(projectName){
-  const headerLeft = document.querySelector(".appHeader-bar-left");
-  if (!headerLeft) return;
-
-
-  const nav = document.createElement('ul');
-  nav.classList.add('nav-list');
-
-  const username = localStorage.getItem('username') || 'User';
-  const userItem = document.createElement('li');
-  const userLink = document.createElement('a');
-  userLink.href = '/profile';
-  userLink.textContent = username;
-  userLink.classList.add('nav-username');
-  userItem.appendChild(userLink);
-  nav.appendChild(userItem);
-
-  const separator = document.createElement('li');
-  separator.classList.add('nav-separator');
-  separator.textContent = '/';
-  nav.appendChild(separator);
-  
-  // Add project name as second item
-  const projectItem = document.createElement('li');
-  const projectLink = document.createElement('a');
-  projectLink.href = '#';
-  projectLink.textContent = projectName;
-  projectLink.classList.add('nav-project');
-  projectItem.appendChild(projectLink);
-  nav.appendChild(projectItem);
-  
-  headerLeft.appendChild(nav);
-}
-
 function updateProjectDescription(projectName) {
   const descriptionBlock = document.querySelector('.description-block');
   if (descriptionBlock) {
@@ -103,4 +55,39 @@ function setupDropdown() {
     });
   }
 }
+
+function setupHeaderNavigation(projectName){
+  const headerLeft = document.querySelector(".appHeader-bar-left");
+  if (!headerLeft) return;
+
+
+  const nav = document.createElement('ul');
+  nav.classList.add('nav-list');
+
+  const username = localStorage.getItem('username') || 'User';
+  const userItem = document.createElement('li');
+  const userLink = document.createElement('a');
+  userLink.href = '/profile';
+  userLink.textContent = username;
+  userLink.classList.add('nav-username');
+  userItem.appendChild(userLink);
+  nav.appendChild(userItem);
+
+  const separator = document.createElement('li');
+  separator.classList.add('nav-separator');
+  separator.textContent = '/';
+  nav.appendChild(separator);
+  
+  // Add project name as second item
+  const projectItem = document.createElement('li');
+  const projectLink = document.createElement('a');
+  projectLink.href = '#';
+  projectLink.textContent = projectName;
+  projectLink.classList.add('nav-project');
+  projectItem.appendChild(projectLink);
+  nav.appendChild(projectItem);
+  
+  headerLeft.appendChild(nav);
+}
+
 export default Project;

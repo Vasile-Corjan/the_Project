@@ -179,13 +179,16 @@ body {
 
 .project-list a {
   padding: 0.5rem 0;
-  border-bottom: 1px solid #444c56;
   text-decoration: none;
-  
+  cursor: pointer;
+  background: none;
+  border: none;
+  color: #ccc;
+  font-size: 14px;
 }
 
-.project-list a:visited {
-  color: var(--sidebar-text-color);
+.project-list a:visited{
+  color: #ccc;
 }
 
 

@@ -264,7 +264,7 @@ document.getElementById("dim").addEventListener('click', () =>{
 
 
 highlighter.events.select.onHighlight.add(async (fragmentIdMap) => {
-  if(fragmentIdMap){
+  if(fragmentIdMap && !clipper.enabled){
     const state = true;
     const properties = await showPropertiesTable(components, fragments, fragmentIdMap);
     createSelectionInfoPanel(state, properties)
@@ -273,8 +273,7 @@ highlighter.events.select.onHighlight.add(async (fragmentIdMap) => {
 
 // Clear the selection
 highlighter.events.select.onClear.add(() => {
-  const state = false;
-  createSelectionInfoPanel(state)
+  createSelectionInfoPanel(false)
   showPropertiesTable(components, fragments, {fragmentIdMap: {}})
 })
 

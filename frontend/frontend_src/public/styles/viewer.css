@@ -335,7 +335,8 @@ li > button {
 #deleting-clip-plane{
   position: fixed;
   bottom: 50px;
-  right: 50px; 
+  right: 50px;
+  z-index: 102; 
 }
 
 #deleting-dimensions{

@@ -3,9 +3,12 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import api_view, permission_classes 
 from django.contrib.auth.models import User
 from rest_framework import generics
-from .serializers import UserSerializer
+from .serializers import UserSerializer, ProjectSerializer
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework import viewsets
+from main_app.models import Project
+
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     @classmethod
@@ -42,3 +45,14 @@ def user_profile(request):
 class CreateUserView(generics.CreateAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
+
+
+class ProjectViewSet(viewsets.ModelViewSet):
+   serializer_class = ProjectSerializer
+   permission_classes = [IsAuthenticated]
+
+   def get_queryset(self):
+      return Project.objects.filter(owner=self.request.user).order_by('-created_at')
+   
+   def perform_create(self, serializer):
+      serializer.save(owner=self.request.user)
