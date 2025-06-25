@@ -1,7 +1,7 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password
-from main_app.models import Project
+from main_app.models import Project, ProjectFiles
 
 class UserSerializer(serializers.ModelSerializer):
   password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
@@ -39,3 +39,15 @@ class ProjectSerializer(serializers.ModelSerializer):
     model = Project
     fields = ('id', 'name', 'created_at', 'updated_at','description')
     read_only_fields = ['owner']
+
+
+class ProjectFileSerializer(serializers.ModelSerializer):
+  #uploaded_by_username = serializers.SerializerMethodField()
+  class Meta:
+    model = ProjectFiles
+    fields = ['id', 'name', 'file', 'project', 'file_type', 'size', 'uploaded_at', 
+              'uploaded_by']
+    read_only_fields = ['id', 'uploaded_at']
+
+   # def get_uploaded_by_username(self, obj):
+    #  return obj.uploaded_by_usernam if obj.uploaded_by else None

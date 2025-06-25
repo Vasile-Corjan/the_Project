@@ -46,6 +46,7 @@ async function loadUserProjects() {
   const projects = await response.json();
   const projectList = document.querySelector('.project-list');
 
+
   projectList.innerHTML = '';
 
   if(projects.length === 0){
@@ -142,7 +143,7 @@ export async function Profile() {
       try {
         setupDropdown();
         createProject();
-        const userResponse = await authenticatedFetch('http://localhost:8000/api/user/profile/');
+        const userResponse = await authenticatedFetch('http://localhost:8000/api/profile/user/');
         const userData = await userResponse.json();
         // Update profile page with user data
         const usernameElement = userData.username;

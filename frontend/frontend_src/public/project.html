@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="./styles/project.css">
   <title>Project</title>
 </head>
+
 <body>
   <header class="appHeader">
     <div class="appHeader-bar">
@@ -28,12 +30,12 @@
     <div class="project-navbar">
       <nav class="navbar">
         <ul class="navbar-body">
-          <li><a href="#" class="tab-link">Project</a></li>
-          <li><a href="#" class="tab-link">Issues</a></li>
-          <li><a href="#" class="tab-link">Insights</a></li>
+          <li><button class="tab-link" id="project-tab">Project</button></li>
+          <li><button class="tab-link" id="issues-tab">Issues</button></li>
+          <li><button class="tab-link" id="insights-tab">Insights</button></li>
           <li><button class="tab-link" id="settings-tab">Settings</button></li>
         </ul>
-    </nav>
+      </nav>
     </div>
     <section class="project-tree">
       <div class="project-files">
@@ -45,46 +47,20 @@
               <th class="time-header">Last update</th>
             </tr>
           </thead>
-          <tbody>
-            <tr class="file-row">
-              <td class="file-name">
-                <a href="#">file_name_test</a>
-              </td>
-              <td class="change-message">this_change_was_done</td>
-              <td class="change-time">now</td>
-            </tr>
-            <tr class="file-row">
-              <td class="file-name">
-                <a href="#">file_name_test</a>
-              </td>
-              <td class="change-message">this_change_was_done</td>
-              <td class="change-time">now</td>
-            </tr>
-            <tr class="file-row">
-              <td class="file-name">
-                <a href="#">file_name_test</a>
-              </td>
-              <td class="change-message">this_change_was_done</td>
-              <td class="change-time">now</td>
-            </tr>
-            <tr class="file-row">
-              <td class="file-name">
-                <a href="#">file_name_test</a>
-              </td>
-              <td class="change-message">this_change_was_done</td>
-              <td class="change-time">now</td>
-            </tr>
-          </tbody>
+          <tbody></tbody>
         </table>
       </div>
     </section>
     <section class="project-description">
       <div class="description-block">
         <img src="" alt="">
-        <p class="description-text">Lorem ipsum dolor sit amet consectetur, adipisicing elit. Eius excepturi deserunt voluptatibus nihil, cupiditate praesentium animi reprehenderit quae, enim at temporibus itaque numquam nostrum sed molestiae quidem! Accusamus, dolorum vel.</p>
+        <p class="description-text">Lorem ipsum dolor sit amet consectetur, adipisicing elit. Eius excepturi deserunt
+          voluptatibus nihil, cupiditate praesentium animi reprehenderit quae, enim at temporibus itaque numquam nostrum
+          sed molestiae quidem! Accusamus, dolorum vel.</p>
       </div>
       <div class="profile-actions">
         <button onclick="window.location.href='/viewer'">Go to Viewer</button>
+        <button class="uploadButton">Upload a file!</button>
       </div>
     </section>
     <div class="settings-overlay">
@@ -108,12 +84,12 @@
               <div class="form-group">
                 <label>Visibility</label>
                 <div class="radio-group">
-                <label>
-                  <input type="radio" name="visibility" value="public"> Public
-                </label>
-                <label>
-                  <input type="radio" name="visibility" value="private" checked> Private
-                </label>
+                  <label>
+                    <input type="radio" name="visibility" value="public"> Public
+                  </label>
+                  <label>
+                    <input type="radio" name="visibility" value="private" checked> Private
+                  </label>
                 </div>
               </div>
               <button type="submit" class="btn primary">Save Changes</button>
@@ -134,4 +110,5 @@
     </div>
   </main>
 </body>
+
 </html>

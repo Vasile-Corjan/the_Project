@@ -18,6 +18,7 @@ export async function Project() {
       setupHeaderNavigation(projectName);
       settingsTab();
       setupDropdown();
+      uploadFile();
       
       const projectData = await loadProjectData(projectId);
       updateProjectDescription(projectData.name, projectData.description);
@@ -270,6 +271,96 @@ function setupDeleteButton(projectId, projectName) {
         }
       }
     });
+  }
+}
+
+function uploadFile(){
+  const uploadButton = document.querySelector('.uploadButton');
+  const urlParams = new URLSearchParams(window.location.search);
+  const projectId = urlParams.get('id');
+
+  if (uploadButton){
+    uploadButton.addEventListener('click', async () => {
+
+      const fileInput = document.createElement('input');
+      fileInput.type = 'file';
+      fileInput.style.display = 'none';
+      document.body.appendChild(fileInput);
+
+      fileInput.click();
+
+      fileInput.addEventListener('change', async (e) => {
+        if(!fileInput.files || fileInput.files.length === 0){
+          document.body.removeChild(fileInput);
+          return;
+        }
+
+        const file = fileInput.files[0];
+
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('name', file.name);
+      
+        const response = await authenticatedFetch(`http://localhost:8000/api/projects/${projectId}/files/`, {
+        method: 'POST',
+        body: formData
+      });
+
+      if(!response.ok){
+        throw new Error(`Upload failed: ${response.status}`);
+      }
+
+      const result = await response.json()
+      console.log("The uploaded file:", result)
+      alert(`File "${file.name}" uploaded successfully!`)
+
+      refreshFilesList(projectId);
+
+      document.body.removeChild(fileInput);
+      
+      }) 
+        
+    })
+  }
+  
+}
+
+async function  refreshFilesList(projectId){
+
+  const response = await authenticatedFetch(`http://localhost:8000/api/projects/${projectId}/files/`);
+
+  if(!response.ok){
+    throw new Error('Failed to fetch files');
+  }
+
+  const files = await response.json();
+
+  const filesTable = document.querySelector('.files-table tbody');
+  if(filesTable){
+    filesTable.innerHTML = '';
+
+    if(files.length === 0){
+      const emptyRow = document.createElement('tr');
+      emptyRow.innerHTML = '<td colspan="3" class="empty-files"> No files uploaded yet </td>'
+      filesTable.appendChild(emptyRow);
+    } else{
+      files.forEach(file => {
+        const row = document.createElement('tr');
+        row.className = 'file-row';
+
+        const uploadDate = new Date(file.uploaded_at);
+        const formattedDate = uploadDate.toLocaleDateString()
+
+        row.innerHTML = `
+        <td class="file-name">
+          <a href="${file.file}">${file.name}</a>
+        </td>
+        <td class="change-time">'N/A'</td>
+        <td class="update-time">${formattedDate}</td>
+        `;
+        filesTable.append(row);
+      })
+    }
   }
 }
 

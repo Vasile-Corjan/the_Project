@@ -10,3 +10,16 @@ class Project(models.Model):
 
   def __str__(self):
     return self.name
+  
+
+class ProjectFiles(models.Model):
+  project = models.ForeignKey('Project', on_delete=models.CASCADE, related_name='files')
+  file = models.FileField(upload_to='project_files/%Y/%m/%d/')
+  name = models.CharField(max_length=255)
+  file_type = models.CharField(max_length=50)
+  size = models.PositiveIntegerField()
+  uploaded_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+  uploaded_at = models.DateTimeField(auto_now_add=True)
+
+  def __str__(self):
+    return self.name

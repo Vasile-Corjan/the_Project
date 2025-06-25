@@ -17,7 +17,7 @@ export async function SignIn() {
           };
 
           try {
-            const response = await fetch('http://localhost:8000/api/token/', {
+            const response = await fetch('http://localhost:8000/api/signin/', {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json'
