@@ -232,11 +232,12 @@ body {
 .change-time, .update-time {
   padding: 8px 16px;
   font-size: 14px;
+  justify-content: center;
 }
 
 .update-time {
   display: flex;
-  justify-content: flex-end;
+  justify-content: center;
 }
 
 .project-description{

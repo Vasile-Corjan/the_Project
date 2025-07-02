@@ -1,3 +1,4 @@
+// IFC.JS modules import
 import * as THREE from "three";
 import * as OBC from "@thatopen/components";
 import * as OBCF from "@thatopen/components-front";
@@ -5,6 +6,7 @@ import * as FRAGS from "@thatopen/fragments"
 import * as BUI from "@thatopen/ui";
 //import * as CUI from "@thatopen/ui-obc";
 import * as WEBIFC from "web-ifc";
+
 // Import UI functions
 import { 
   initializePanels, 
@@ -13,9 +15,18 @@ import {
   showPropertiesTable,
   createSelectionInfoPanel,
 } from "./ui.js";
+// Local functions upload
+import { authenticatedFetch } from "../../api.js";
+
+
+//URLParameters
+const urlParams = new URLSearchParams(window.location.search);
+const projectId = urlParams.get('projectId');
+const fileId = urlParams.get('fileId');
+const fileName = urlParams.get('fileName');
+
 
 //BUI.Manager.init();
-
 const container = document.getElementById("container");
 
 const components = new OBC.Components();
@@ -127,8 +138,27 @@ ifcLoader.settings.webIfc.OPTIMIZE_PROFILES = true;
 // Initialize UI panels
 initializePanels(components, fragments);
 
-// THIS LOADS THE IFC HURRAYYYYYYYYY
-const onBtnClick = () => {
+fragments.onFragmentsLoaded.add( async (model) => {
+  if (!model.isStreamed) {
+    for (const fragment of model.items){
+      world.meshes.add(fragment.mesh);
+    }
+  }
+  world.scene.three.add(model);
+})
+
+// Function to load IFC from database
+async function loadIfcFromDatabase(projectId, fileId) {
+  const file = await authenticatedFetch(`http://localhost:8000/api/projects/${projectId}/files/${fileId}/`);
+  const buffer = await file.arrayBuffer();
+  const data = new Uint8Array(buffer);
+  const model = await ifcLoader.load(data, true);
+  model.name = fileName;
+  //world.scene.three.add(model);
+}
+
+// Function to handle file upload
+const handleFileUpload = async () => {
   const fileOpener = document.createElement("input");
   fileOpener.type = "file";
   fileOpener.accept = ".ifc";
@@ -139,21 +169,22 @@ const onBtnClick = () => {
     fileOpener.remove();
     const buffer = await file.arrayBuffer();
     const data = new Uint8Array(buffer);
-    const model = await ifcLoader.load(data, true, fileName)
+    const model = await ifcLoader.load(data, true);
+    model.name = fileName;
   };
   fileOpener.click();
 };
 
-document.getElementById("uploadlink").addEventListener('click', onBtnClick)
+// Add event listener for upload button
+document.getElementById("uploadlink").addEventListener('click', handleFileUpload);
 
-fragments.onFragmentsLoaded.add( async (model) => {
-  if (!model.isStreamed) {
-    for (const fragment of model.items){
-      world.meshes.add(fragment.mesh);
-    }
-  }
-  world.scene.three.add(model);
-})
+if (projectId && fileId) {
+  await loadIfcFromDatabase(projectId, fileId);
+}
+
+
+
+
 
 // CULLERS
 const cullers = components.get(OBC.Cullers);
@@ -163,6 +194,7 @@ const culler = cullers.create(world);
 const fragmentBox = components.get(OBC.BoundingBoxer);
 let initialGridPositionSet = false;
 let initialGridPositionY = 0;
+
 
 fragments.onFragmentsLoaded.add((model) => {
   fragmentBox.add(model);
@@ -189,7 +221,7 @@ clipper.Type = OBCF.EdgesPlane;
 const edges = components.get(OBCF.ClipEdges);
 const blackLine = new THREE.LineBasicMaterial({color: "black"});
 const clipperColor = new THREE.Color("#FBF0C3");
-edges.styles.create("Outline",world.meshes,world,blackLine);
+edges.styles.create("Outline", world.meshes, world,blackLine);
 
 
 document.getElementById('clip').addEventListener('click', () => {

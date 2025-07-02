@@ -1,75 +1,82 @@
 export async function Register() {
   try {
-      const response = await fetch("/register.html");
-      const html = await response.text();
+    const response = await fetch("/register.html");
+    const html = await response.text();
 
-      setTimeout(() => {
-          const form = document.getElementById('registerForm');
-          if (form) {
-              form.addEventListener('submit', async (e) => {
-                  e.preventDefault();
-                  
-                  const formData = {
-                      first_name: form.first_name.value,
-                      last_name: form.last_name.value,
-                      username: form.username.value,
-                      email: form.email.value,
-                      password: form.password.value,
-                      confirm_password: form.confirm_password.value
-                  };
+    return {
+      html,
+      afterRender: function(){
 
-                  try {
-                      const response = await fetch('http://localhost:8000/api/user/register/', {
-                          method: 'POST',
-                          headers: {
-                              'Content-Type': 'application/json',
-                          },
-                          body: JSON.stringify(formData)
-                      });
+        const form = document.getElementById('registerForm');
+        if (form) {
+          form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+                
+            const formData = {
+              first_name: form.first_name.value,
+              last_name: form.last_name.value,
+              username: form.username.value,
+              email: form.email.value,
+              password: form.password.value,
+              confirm_password: form.confirm_password.value
+            };
+            
+            const noChar = [':','?','|','/','\\','*','"','<','>'];
+            const contains = noChar.some(char => formData.username.includes(char));
 
-                      const data = await response.json();
+            if(contains){
+              alert(`Registration failed. Your username contains bad characters. Avoid these characters: ${noChar}`);
+            } else{    
+              try {
+                const response = await fetch('http://localhost:8000/api/register/user/', {
+                  method: 'POST',
+                  headers: {
+                      'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify(formData)
+                });
 
-                      if (response.ok) {
-                        const loginResponse = await fetch('http://localhost:8000/api/token/',{
-                          method: 'POST',
-                          headers: {
-                            'Content-Type': 'application/json',
-                          },
-                          body: JSON.stringify({
-                            username: formData.username,
-                            password: formData.password
-                          })
-                        });
+                const data = await response.json();
 
-                        const tokenData = await loginResponse.json();
-                        
-                        if(loginResponse.ok){
-                          localStorage.setItem('access_token', tokenData.access);
-                          localStorage.setItem('refresh_token', tokenData.refresh);
-                          localStorage.setItem('username', formData.username);
+                if (response.ok) {
+                  const loginResponse = await fetch('http://localhost:8000/api/token/',{
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                      username: formData.username,
+                      password: formData.password
+                    })
+                  });
+                      
 
-                          
-                          alert('Registration successful!');
-                          window.location.href = '/profile';
-                        } else {
-                          alert(`Registration failed: ${JSON.stringify(data)}`);
-                          window.location.href = '/home';
-                      }
+                  const tokenData = await loginResponse.json();
+                      
+                  if(loginResponse.ok){
+                    localStorage.setItem('access_token', tokenData.access);
+                    localStorage.setItem('refresh_token', tokenData.refresh);
+                    localStorage.setItem('username', formData.username);
 
-                      } 
-                  } catch (error) {
-                      console.error('Error:', error);
-                      alert('Registration failed. Please try again.');
+                    alert('Registration successful!');
+                    window.location.href = '/profile';
+                  } else {
+                    alert(`Registration failed: ${JSON.stringify(data)}`);
+                    window.location.href = '/home';
                   }
-              });
-          }
-      }, 100);
-
-      return html;
+                } 
+              } catch (error) {
+                  console.error('Error:', error);
+                  alert('Registration failed. Please try again.');
+              }
+            }
+          });            
+        }
+      }     
+    };
   } catch (error) {
-      console.error('Error loading register page:', error);
-      return '<h1>Error loading register page</h1>';
+    console.error('Error loading register page:', error);
+    return '<h1>Error loading register page</h1>';
   }
 }
-
 export default Register;
