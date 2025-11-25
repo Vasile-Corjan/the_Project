@@ -1,5 +1,6 @@
 import * as OBC from "@thatopen/components";
 import * as WEBIFC from "web-ifc";
+import { authenticatedFetch } from "../../api.js";
 
 // Shared variables for panels
 let treePanel = null;
@@ -16,250 +17,51 @@ export function initializePanels(components, fragments) {
   setupModelsPanel(components, fragments);
 }
 
-export async function setupTreePanel(components, fragments) {
-  // Set up event listener for model loading
-  fragments.onFragmentsLoaded.add(async (model) => {
-    await handleTreeForModel(model, components, fragments);
-  });
-  
-  // Add listener for model disposal
-  fragments.onFragmentsDisposed.add((model) => {
-    // Remove disposed model from our tracking array
-    const index = treeModels.indexOf(model.uuid);
-    if (index > -1) {
-      treeModels.splice(index, 1);
-    }
-    
-    // Update the panel if it's visible
-    if (treePanel && treePanel.classList.contains('visible')) {
-      updateTreePanelWithAllModels(components, fragments);
-    }
-  });
-}
-
-async function handleTreeForModel(model, components, fragments) {
-  const indexer = components.get(OBC.IfcRelationsIndexer);
-  await indexer.process(model);
-  // const inverseAttributes = ["IsDecomposedBy", "ContainsElements"];
-  
-  // Store model reference for later updates
-  if (!treeModels.includes(model.uuid)) {
-    treeModels.push(model.uuid);
-  }
-  
-  const treePanelbutton = document.querySelector('.tree-panel-button');
-  if (!treePanelbutton) return;
-
-  if (!treePanel) {
-    const sideMenu = document.querySelector('.side-nav');
-    treePanel = document.createElement('div');
-    treePanel.className = 'tree-panel';
-    treePanel.style.display = 'none';
-    sideMenu.appendChild(treePanel);
-  }
-  
-  if (!eventListenerAddedTree) {
-    eventListenerAddedTree = true;
-    treePanelbutton.addEventListener('click', async () => {    
-      if (treePanel.classList.contains('visible')) {
-        treePanel.classList.remove('visible');
-        treePanel.style.display = 'none';
-      } else {
-
-        if (dataPanel && dataPanel.classList.contains('visible')) {
-          dataPanel.classList.remove('visible');
-          dataPanel.style.display = 'none';
-        }
-
-        await updateTreePanelWithAllModels(components, fragments);
-        treePanel.style.display = 'block';
-        treePanel.classList.add('visible');
-      }
-    });
-  }
-  
-  // Only update the panel if it's currently visible
-  if (treePanel.classList.contains('visible')) {
-    await updateTreePanelWithAllModels(components, fragments);
-  }
-}
-
-// New function to update tree panel with all loaded models
-async function updateTreePanelWithAllModels(components, fragments) {
-  if (!treePanel) return;
-  
-  // Clear existing content
-  treePanel.innerHTML = '';
-  
-  // Add title
-  const treePanelTitle = document.createElement('p');
-  treePanelTitle.textContent = "Model Structure";
-  treePanel.appendChild(treePanelTitle);
-  
-  const inverseAttributes = ["IsDecomposedBy", "ContainsElements"];
-  
-  // Get all models that are still valid
-  const validModels = [];
-  for (const modelId of treeModels) {
-    const model = fragments.groups.get(modelId);
-    if (model) {
-      validModels.push(model);
-    }
-  }
-  
-  // Clean up the model list to remove any disposed models
-  treeModels = validModels.map(model => model.uuid);
-
-  // Get data for all models
-  const data = await computeRowData(components, validModels, inverseAttributes);
-  
-  if (data && data.length > 0) {
-    // Create tree nodes for all models
-    data.forEach((modelData, index) => {
-      // Add a separator between models except for the first one
-      if (index > 0) {
-        const separator = document.createElement('hr');
-        //separator.style.margin = '10px 0';
-        //separator.style.borderTop = '1px solid #ccc';
-        treePanel.appendChild(separator);
-      }
-      
-      // Create model container with some visual distinction
-      const modelContainer = document.createElement('div');
-      modelContainer.className = 'model-tree-container';
-      modelContainer.style.marginBottom = '10px';
-      treePanel.appendChild(modelContainer);
-      
-      // Create tree node for this model
-      createTreeNode(modelContainer, modelData, 0);
-    });
-  } else {
-    const noDataMsg = document.createElement('p');
-    noDataMsg.textContent = "No structure data available";
-    treePanel.appendChild(noDataMsg);
-  }
-}
-
-// Recursive function to create tree nodes
-function createTreeNode(parentElement, nodeData, level) {
-  const nodeContainer = document.createElement('div');
-  nodeContainer.className = 'tree-node';
-  nodeContainer.style.paddingLeft = `${level * 1.5}px`;
-  
-  const nodeHeader = document.createElement('div');
-  nodeHeader.className = 'tree-node-header';
-  
-  // Create expand/collapse toggle if there are children
-  if (nodeData.children && nodeData.children.length > 0) {
-    const toggle = document.createElement('span');
-    toggle.textContent = '▶';
-    toggle.className = 'tree-toggle';
-    toggle.style.cursor = 'pointer';
-    toggle.style.marginRight = '5px';
-    
-    nodeHeader.appendChild(toggle);
-    
-    // Create children container
-    const childrenContainer = document.createElement('div');
-    childrenContainer.className = 'tree-children';
-    childrenContainer.style.display = 'none';
-    
-    // Add toggle functionality
-    toggle.addEventListener('click', () => {
-      if (childrenContainer.style.display === 'none') {
-        childrenContainer.style.display = 'block';
-        toggle.textContent = '▼';
-        
-        // Lazy load children if not already loaded
-        if (childrenContainer.children.length === 0) {
-          nodeData.children.forEach(child => {
-            createTreeNode(childrenContainer, child, level + 1);
-          });
-        }
-      } else {
-        childrenContainer.style.display = 'none';
-        toggle.textContent = '▶';
-      }
-    });
-    
-    nodeContainer.appendChild(nodeHeader);
-    nodeContainer.appendChild(childrenContainer);
-  } else {
-    nodeContainer.appendChild(nodeHeader);
-  }
-  
-  // Add node content
-  const nodeLabel = document.createElement('span');
-  nodeLabel.className = 'tree-node-label';
-  
-  // Format node text based on data available
-  let labelText = nodeData.data.Entity || '';
-  if (nodeData.data.Name) {
-    labelText += ` - ${nodeData.data.Name}`;
-  }
-  nodeLabel.textContent = labelText;
-  
-  // Make nodes selectable/highlightable
-  /* if (nodeData.data.modelID && nodeData.data.expressID) {
-    nodeLabel.style.cursor = 'pointer';
-    nodeLabel.addEventListener('click', () => {
-      highlightElement(nodeData.data);
-    });
-  } */
-  
-  nodeHeader.appendChild(nodeLabel);
-  parentElement.appendChild(nodeContainer);
-}
-
 // LOADED MODELS PANEL FUNCTIONALITY
 export function setupModelsPanel(components, fragments) {
-  fragments.onFragmentsLoaded.add((model) => {
-    handleModelLoaded(model, components, fragments);
-  });
+  fragments.core.onModelLoaded.add(async (model) =>{
+    await handleModelLoaded(model, components, fragments)
+  })
 }
 
-function handleModelLoaded(model, components, fragments) {
+async function handleModelLoaded(model, components, fragments) {
   if (!model) return;
-  
+  const metadata = await model.getMetadata();
+  const schemaValue = metadata.schema || '';
   loadedModels.push({
     name: model.name,
-    modelId: model.uuid,
-    schema: model.ifcMetadata.schema,
-    viewDef: model.ifcMetadata.viewDefinition
-  });
-
+    modelId: model.modelId,
+    schema: schemaValue,
+    viewDef: '',
+  }); 
+  
   const loadModelbutton = document.querySelector('.loaded-model');
   if (!loadModelbutton) return;
+    if (!dataPanel) {
+      const sideMenu = document.querySelector('.side-nav');
+      dataPanel = document.createElement('div');
+      dataPanel.className = 'data-panel';
+      dataPanel.style.display = 'none';
+      sideMenu.appendChild(dataPanel);
+    }  
   
-  if (!dataPanel) {
-    const sideMenu = document.querySelector('.side-nav');
-    dataPanel = document.createElement('div');
-    dataPanel.className = 'data-panel';
-    dataPanel.style.display = 'none';
-    sideMenu.appendChild(dataPanel);
-  }  
-  
-  if (!eventListenerAddedModels) {
-    eventListenerAddedModels = true;
-    loadModelbutton.addEventListener('click', () => {
-      if (dataPanel.classList.contains('visible')) {
-        dataPanel.classList.remove('visible');
-        dataPanel.style.display = 'none';
-      } else {
-
-        if(treePanel && treePanel.classList.contains('visible')){
-          treePanel.classList.remove('visible');
-          treePanel.style.display = 'none';
+    if (!eventListenerAddedModels) {
+      eventListenerAddedModels = true;
+      loadModelbutton.addEventListener('click', () => {
+        if (dataPanel.classList.contains('visible')) {
+          dataPanel.classList.remove('visible');
+          dataPanel.style.display = 'none';
+        } else {
+          if(treePanel && treePanel.classList.contains('visible')){
+            treePanel.classList.remove('visible');
+            treePanel.style.display = 'none';
+          }
+          updateDataPanel(dataPanel, components, fragments);
+          dataPanel.style.display = 'block';
+          dataPanel.classList.add('visible');
         }
-
-
-        updateDataPanel(dataPanel, components, fragments);
-        dataPanel.style.display = 'block';
-        dataPanel.classList.add('visible');
-      }
-    });
-  }
-  
+      });
+    }
   updateDataPanel(dataPanel, components, fragments);
 
   if (!dataPanel.classList.contains('visible')) {
@@ -268,10 +70,8 @@ function handleModelLoaded(model, components, fragments) {
   }
 }
 
-// Update data panel with loaded models
 export function updateDataPanel(dataPanel, components, fragments) {
   if (!dataPanel) return;
-
   dataPanel.innerHTML = '';
   const dataPaneltitle = document.createElement('p');
   dataPaneltitle.textContent = "Loaded Models";
@@ -280,14 +80,14 @@ export function updateDataPanel(dataPanel, components, fragments) {
   const removeiconSVG = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="m18 9l-.84 8.398c-.127 1.273-.19 1.909-.48 2.39a2.5 2.5 0 0 1-1.075.973C15.098 21 14.46 21 13.18 21h-2.36c-1.279 0-1.918 0-2.425-.24a2.5 2.5 0 0 1-1.076-.973c-.288-.48-.352-1.116-.48-2.389L6 9m7.5 6.5v-5m-3 5v-5m-6-4h4.615m0 0l.386-2.672c.112-.486.516-.828.98-.828h3.038c.464 0 .867.342.98.828l.386 2.672m-5.77 0h5.77m0 0H19.5"/></svg>';
   const visibilityOnSVG = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M2.062 12.348a1 1 0 0 1 0-.696a10.75 10.75 0 0 1 19.876 0a1 1 0 0 1 0 .696a10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/></g></svg>';
   const visibilityOffSVG = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575a1 1 0 0 1 0 .696a10.8 10.8 0 0 1-1.444 2.49m-6.41-.679a3 3 0 0 1-4.242-4.242"/><path d="M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151a1 1 0 0 1 0-.696a10.75 10.75 0 0 1 4.446-5.143M2 2l20 20"/></g></svg>';
-
-  loadedModels.forEach((loadedModel, index) => {
+  
+  loadedModels.forEach( async (loadedModel, index) => {
     const modelIconContainer = document.createElement('div');
     modelIconContainer.classList = 'model-icons-name';
 
     const modelName = document.createElement('p');
     modelName.textContent = loadedModel.name || loadedModel.modelId;
-
+    
     const iconContainer = document.createElement('div');
     iconContainer.className = 'icon-container';
 
@@ -300,24 +100,30 @@ export function updateDataPanel(dataPanel, components, fragments) {
     visibilityBtn.className = 'model-visibilityOn-icon';
     visibilityBtn.dataset.visible = 'true';
 
-    const modelInstance = fragments.groups.get(loadedModel.modelId);
-    const modelIdMap = modelInstance.getFragmentMap();
-    
-    visibilityBtn.addEventListener('click', (e) => {
+    const modelInstance = fragments.list.get(loadedModel.modelId); 
+
+    visibilityBtn.addEventListener('click', async (e) => {
       e.stopPropagation();
       
       const isVisible = visibilityBtn.dataset.visible === 'true';
       const hider = components.get(OBC.Hider);
+      
+      const modelIdMap = {};
+      const items = await modelInstance.getLocalIds();
+      const localIds = Object.values(items).flat();
+      modelIdMap[modelInstance.modelId] = new Set(localIds);
     
       if (isVisible) {
         // Hide the model
-        hider.set(false, modelIdMap);
+        await hider.set(false, modelIdMap);
+        
         visibilityBtn.innerHTML = visibilityOffSVG;
         visibilityBtn.className = 'model-visibilityOff-icon';
         visibilityBtn.dataset.visible = 'false';
+        
       } else {
         // Show the model
-        hider.set(true, modelIdMap);
+        await hider.set(true, modelIdMap);
         visibilityBtn.innerHTML = visibilityOnSVG;
         visibilityBtn.className = 'model-visibilityOn-icon';
         visibilityBtn.dataset.visible = 'true';
@@ -325,7 +131,7 @@ export function updateDataPanel(dataPanel, components, fragments) {
     });
 
     removeBtn.onclick = () => {
-      fragments.disposeGroup(modelInstance);
+      fragments.core.disposeModel(loadedModel.modelId);
       loadedModels.splice(index, 1);
       updateDataPanel(dataPanel, components, fragments);
     };
@@ -352,300 +158,402 @@ export function updateDataPanel(dataPanel, components, fragments) {
   });
 }
 
-// Tree data processing functions
-export async function computeRowData(components, models, inverseAttributes, expressID) {
-  const indexer = components.get(OBC.IfcRelationsIndexer);
-  const rows = [];
-  for (const model of models) {
-    let modelData;
-    if (expressID) {
-      modelData = {
-        data: {
-          Entity: model.name !== "" ? model.name : model.uuid,
-        },
-        children: await getdecompositionTree(
-          components,
-          model,
-          expressID,
-          inverseAttributes,
-        ),
-      };
-    } else {
-      const modelRelations = indexer.relationMaps[model.uuid];
-      const projectAttrs = await model.getAllPropertiesOfType(
-        WEBIFC.IFCPROJECT,
-      );
-      if (!(modelRelations && projectAttrs)) continue;
-      const { expressID } = Object.values(projectAttrs)[0];
-      modelData = {
-        data: {
-          Entity: model.name !== "" ? model.name : model.uuid,
-        },
-        children: await getdecompositionTree(
-          components,
-          model,
-          expressID,
-          inverseAttributes,
-        ),
-      };
-    }
-    rows.push(modelData);
-  }
-  return rows;
-}
-
-export async function getdecompositionTree(components, model, expressID, inverseAttributes) {
-  const rows = [];
-  const indexer = components.get(OBC.IfcRelationsIndexer);
-  const entityAttrs = await model.getProperties(expressID);
-  if (!entityAttrs) return rows;
-  const {type} = entityAttrs;
-  const entityRow = {
-    data: {
-      Entity: OBC.IfcCategoryMap[type],
-      Name: entityAttrs.Name?.value,
-      modelID: model.uuid,
-      expressID
-    },
-    children: []
-  };
-  for (const attrName of inverseAttributes) {
-    const relations = indexer.getEntityRelations(model, expressID, attrName);
-    if (!relations) continue;
-    if (!entityRow.children) entityRow.children = [];
-    entityRow.data.relations = JSON.stringify(relations);
-    const entityGroups = {};
-    for (const id of relations) {
-      const decompositionRow = await getdecompositionTree(components, model, id, inverseAttributes);
-      for (const row of decompositionRow) {
-        if (row.data.relations) {
-          entityRow.children.push(row);
-        } else {
-          const data = model.data.get(id);
-          if (!data) {
-            entityRow.children.push(row);
-            continue;
-          }
-          const type = data[1][1];
-          const entity = OBC.IfcCategoryMap[type];
-          if(!(entity in entityGroups)) {
-            entityGroups[entity] = [];
-          }
-          row.data.Entity = row.data.Name;
-          delete row.data.Name;
-          entityGroups[entity].push(row);
-        }
-      }
-    }
-    for (const entity in entityGroups) {
-      const children = entityGroups[entity];
-      const relations = children.map((child) => child.data.expressID);
-      const row = {
-        data: {
-          Entity: entity,
-          modelID: model.uuid,
-          relations: JSON.stringify(relations),
-        },
-        children
-      };
-      entityRow.children.push(row);
-    }
-  }
-  rows.push(entityRow);
-  return rows;
-}
-
-export function getRowFragmentIdMap(components, rowData) {
-  const fragments = components.get(OBC.FragmentsManager);
-  const { modelID, expressID, relations } = rowData;
-  if (!modelID) return null;
-  const model = fragments.groups.get(modelID);
-  if (!model) return null;
-  const fragmentIDMap = model.getFragmentMap([
-    expressID,
-    ...JSON.parse(relations ?? "[]"),
-  ]);
-  return fragmentIDMap;
-}
-
 // Export the models array to allow access from other files if needed
 export const getLoadedModels = () => [...loadedModels];
 
-// Creates rows with attributes
-async function createRows(attrs, options = {data:{Name:"Attributes"}}){
-  const attrsToIgnore = ["OwnerHistory", "ObjectPlacement", "CompositionType"];
-  const attrRows = { data: {Name: options.data?.Name || "Attributes"}};
-  if (!attrRows.children) attrRows.children = [];
 
-  attrRows.children.push({
-    data: {
-      Name: "Class",
-      Value: OBC.IfcCategoryMap[attrs.type],
-    },
-  });
-
-  for (const attrName in attrs) {
-    if(attrsToIgnore.includes(attrName)) continue;
-    const attrValue = attrs[attrName];
-    if (!attrValue) continue;
-    if (typeof attrValue === "object" && !Array.isArray(attrValue)) {
-      if (attrValue.type === WEBIFC.REF) continue;
-      const valueRow = {
-        data: {Name: attrName, Value: attrValue.value}
-      }
-      attrRows.children.push(valueRow);
+// Integrated getModelTree function
+const getModelTree = async(model, structure) => {
+  const {localId, category, children} = structure;
+  if (category && children){
+    const row = {
+      data:{
+        Name: category,
+        modelId: model.modelId,
+        children: JSON.stringify(children.map((item) => item.localId)),
+      },
     };
-  };
-  return attrRows;
-}
-
-// Creates rows with attributes about Containment
-const processContainerRelations = async (components, model, expressID, row,) => {
-  const indexer = components.get(OBC.IfcRelationsIndexer);
-  const containerRelations = indexer.getEntityRelations(model, expressID, "ContainedInStructure");
-
-  if (containerRelations && containerRelations[0]) {
-    const containerID = containerRelations[0];
-    const container = await model.getProperties(containerID);
-    if (container) {
-      const attributesRow = await createRows(container,{data: {Name:"SpatialContainment"}});
-      row.children.push(attributesRow);
+    for (const child of children){
+      const childRow = await getModelTree(model, child);
+      if(!childRow) continue;
+      if(!row.children) row.children = [];
+      row.children.push(childRow);
     }
+    return row;
   }
+  if (localId !== null) {
+    const item = model.getItem(localId);
+    const attrs = await item.getAttributes();
+    if (!attrs) return null;
+    const row = {
+      data: {
+        Name: String(attrs.getValue("Name")),
+        modelId: model.modelId,
+        localId,
+      },
+    };
+    for (const child of children ?? []) {
+      const childRow = await getModelTree(model, child);
+      if (!childRow) continue;
+      if (!row.children) row.children = [];
+      row.children.push(childRow);
+    }
+    return row;
+  }
+  return null;
 };
 
-const createPsetsRow = async (model, psets) => {
-  const row = { data: { Name: "PropertySets" } };
-  for (const pset of psets) {
-    const setRow = {data: { Name: pset.Name?.value },};
-    if (pset.type !== WEBIFC.IFCPROPERTYSET) continue;
-    for (const propHandle of pset.HasProperties) {
-      const { value: propID } = propHandle;
-      const propAttrs = await model.getProperties(propID);
-      if (!propAttrs) continue;
-      const valueKey = Object.keys(propAttrs).find((attr) =>
-        attr.includes("Value"),
-      );
-      if (!(valueKey && propAttrs[valueKey])) continue;
-      let value = propAttrs[valueKey].value;
-      let symbol = "";
-      const propRow = {
+// Integrated computeRowData function
+const computeRowData = async (models) => {
+  const rows = [];
+  for (const model of models) {
+    try {
+      const structure = await model.getSpatialStructure();
+      const tree = await getModelTree(model, structure);
+      if (!tree) continue;
+      const modelData = {
         data: {
-          Name: propAttrs.Name?.value,
-          Value: `${value} ${symbol ?? ""}`,
+          Name: model.name || model.modelId,
+          modelId: model.modelId,
         },
+        children: [tree],
       };
-      if (!setRow.children) setRow.children = [];
-      setRow.children.push(propRow);
-    }
-    if (!setRow.children) continue;
-    if (!row.children) row.children = [];
-    row.children.push(setRow);
-  }
-  return row;
-};
-
-const createQsetsRow = async(model, qsets) => {
-  const row = {data: {Name: "QuantitySets"}};
-  for (const qset of qsets) {
-    const setRow = {data: {Name: qset.Name?.value},};
-    if (qset.type !== WEBIFC.IFCELEMENTQUANTITY) continue;
-    for (const qtoHandle of qset.Quantities){
-      const {value: propID} = qtoHandle;
-      const propAttrs = await model.getProperties(propID);
-      if (!propAttrs) continue;
-      const valueKey = Object.keys(propAttrs).find((attr) =>
-        attr.includes("Value"),
-      );
-      if (!(valueKey && propAttrs[valueKey])) continue;
-      let value = propAttrs[valueKey].value;
-      let symbol = "";
-      const propRow = {
-        data: {
-          Name: propAttrs.Name?.value,
-          Value: `${value} ${symbol ?? ""}`,
-        },
-      };
-      if (!setRow.children) setRow.children = [];
-      setRow.children.push(propRow);
-    }
-    if (!setRow.children) continue;
-    if (!row.children) row.children = [];
-    row.children.push(setRow);
-  }
-  return row;
-}
-
-const processDefinedByRelations = async (components, model, expressID, row) => {
-  const indexer = components.get(OBC.IfcRelationsIndexer);
-  const definedByRelations = indexer.getEntityRelations(
-    model,
-    expressID,
-    "IsDefinedBy",
-  );
-
-  if (definedByRelations) {
-    const psets = [];
-    const qsets = [];
-
-    for (const definition of definedByRelations) {
-      const attrs = await model.getProperties(definition);
-      if (!attrs) continue;
-      if (attrs.type === WEBIFC.IFCPROPERTYSET) psets.push(attrs);
-      if (attrs.type === WEBIFC.IFCELEMENTQUANTITY) qsets.push(attrs);
-    }
-
-    const psetRow = await createPsetsRow(model, psets,);
-    if (psetRow.children) row.children.push(psetRow); 
-
-    const qsetRow = await createQsetsRow(model, qsets);
-    if (qsetRow.children) row.children.push(qsetRow); 
-  }
-};
-
-// Create the Properties Table 
-export async function showPropertiesTable(components, fragments, fragmentIdMap) {
-  const indexer = components.get(OBC.IfcRelationsIndexer);
-  let processedElements = {};
-  const modelIdMap = fragments.getModelIdMap(fragmentIdMap);//This outputs the modelId from the selected fragmentId
-  
-  if (Object.keys(fragmentIdMap).length === 0) processedElements = {};
-  const rows = []
-  for (const modelID in modelIdMap) {
-    const model = fragments.groups.get(modelID);
-    if (!model) continue;
-    const modelRelations = indexer.relationMaps[model.uuid];
-    if (!modelRelations) continue;
-    if (!(modelID in processedElements)) processedElements[modelID] = new Map();
-    const modelProcessings = processedElements[modelID];
-    const expressIDs = modelIdMap[modelID];
-    for (const expressID of expressIDs) {
-      let elementRow = modelProcessings.get(expressID);
-      
-      if (elementRow) {
-        rows.push(elementRow);
-        continue;
-      }
-      const elementAttrs = await model.getProperties(expressID);
-      if (!elementAttrs) continue;
-      elementRow = {
-        data: {
-          Name: elementAttrs.Name?.value,
-        },
-      };
-
-      rows.push(elementRow);
-      modelProcessings.set(expressID, elementRow);
-
-      const attributesRow = await createRows(elementAttrs);
-      if (!elementRow.children) elementRow.children = [];
-      elementRow.children.push(attributesRow);
-      await processDefinedByRelations(components, model, expressID, elementRow);
-      await processContainerRelations(components, model, expressID, elementRow);
+      rows.push(modelData);
+    } catch (error) {
     }
   }
   return rows;
+};
+
+export function setupTreePanel(components, fragments) {
+  fragments.core.onModelLoaded.add(async (model) => {
+    await handleTreeForModel(model, components, fragments);
+  });
 }
+
+async function handleTreeForModel(model, components, fragments) {
+  // Add model to tracking array if not already there
+  if (!treeModels.includes(model.modelId)) {
+    treeModels.push(model.modelId);
+  }
+  
+  // Set up the tree panel UI if not already done
+  const treePanelButton = document.querySelector('.tree-panel-button');
+  if (!treePanelButton) return;
+  
+  if (!treePanel) {
+    const sideMenu = document.querySelector('.side-nav');
+    treePanel = document.createElement('div');
+    treePanel.className = 'tree-panel';
+    treePanel.style.display = 'none';
+    sideMenu.appendChild(treePanel);
+  }
+  
+  if (!eventListenerAddedTree) {
+    eventListenerAddedTree = true;
+    treePanelButton.addEventListener('click', async () => {
+      if (treePanel.classList.contains('visible')) {
+        treePanel.classList.remove('visible');
+        treePanel.style.display = 'none';
+      } else {
+        // Hide data panel if visible
+        if (dataPanel && dataPanel.classList.contains('visible')) {
+          dataPanel.classList.remove('visible');
+          dataPanel.style.display = 'none';
+        }
+        
+        // Update tree content and show it
+        await renderTreePanel(components, fragments);
+        treePanel.style.display = 'block';
+        treePanel.classList.add('visible');
+      }
+    });
+  }
+  
+  // Update the tree panel if it's already visible
+  if (treePanel.classList.contains('visible')) {
+    await renderTreePanel(components, fragments);
+  }
+}
+
+async function renderTreePanel(components, fragments) {
+  if (!treePanel) return;
+  
+  // Show loading state
+  treePanel.innerHTML = '<p>Loading model structure...</p>';
+  
+  try {
+    // Get models for the tree
+    const modelsList = [];
+    for (const modelId of treeModels) {
+      const model = fragments.list.get(modelId);
+      if (model) modelsList.push(model);
+    }
+    
+    if (modelsList.length === 0) {
+      treePanel.innerHTML = '<p>No models loaded</p>';
+      return;
+    }
+    
+    // Get tree data using your existing functions
+    const treeData = await computeRowData(modelsList);
+    
+    // Reset panel content
+    treePanel.innerHTML = '';
+    
+    // Add title
+    const title = document.createElement('h2');
+    title.textContent = 'Model Structure';
+    title.style.margin = '8px 0';
+    title.style.fontSize = '16px';
+    treePanel.appendChild(title);
+    
+    // Render tree for each model
+    treeData.forEach((modelData, index) => {
+      // Add separator between models
+      if (index > 0) {
+        const separator = document.createElement('hr');
+        separator.style.margin = '12px 0';
+        treePanel.appendChild(separator);
+      }
+      
+          
+      // Create container for this model's tree
+      const modelTreeContainer = document.createElement('div');
+      modelTreeContainer.className = 'model-tree';
+      modelTreeContainer.style.paddingLeft = '8px';
+      treePanel.appendChild(modelTreeContainer);
+      
+      // Render children
+      if (modelData.children && modelData.children.length > 0) {
+        renderTreeNodes(modelTreeContainer, modelData.children, 0, components, fragments);
+      }
+    });
+  } catch (error) {
+    treePanel.innerHTML = '<p>Error loading model structure</p>';
+  }
+}
+
+function renderTreeNodes(container, nodes, level, components, fragments) {
+  nodes.forEach(node => {
+    const nodeContainer = document.createElement('div');
+    nodeContainer.className = 'tree-node';
+    nodeContainer.style.paddingLeft = `${level * 1.5}px`;
+    
+    // Node header with expand/collapse functionality
+    const nodeHeader = document.createElement('div');
+    nodeHeader.className = 'node-header';
+    nodeHeader.style.display = 'flex';
+    nodeHeader.style.alignItems = 'center';
+    
+    // Toggle button for expand/collapse if node has children
+    const hasChildren = node.children && node.children.length > 0;
+    if (hasChildren) {
+      const toggleBtn = document.createElement('span');
+      toggleBtn.textContent = '▶';
+      toggleBtn.style.cursor = 'pointer';
+      toggleBtn.style.marginRight = '5px';
+      toggleBtn.style.width = '16px';
+      toggleBtn.style.display = 'inline-block';
+      nodeHeader.appendChild(toggleBtn);
+      
+      // Children container
+      const childrenContainer = document.createElement('div');
+      childrenContainer.className = 'node-children';
+      childrenContainer.style.display = 'none';
+      
+      // Toggle functionality
+      toggleBtn.addEventListener('click', () => {
+        if (childrenContainer.style.display === 'none') {
+          childrenContainer.style.display = 'block';
+          toggleBtn.textContent = '▼';
+          
+          // Lazy load children if not already loaded
+          if (childrenContainer.children.length === 0) {
+            renderTreeNodes(childrenContainer, node.children, level + 1, components, fragments);
+          }
+        } else {
+          childrenContainer.style.display = 'none';
+          toggleBtn.textContent = '▶';
+          toggleBtn.style.transform = 'rotate(0deg)';
+        }
+      });
+      
+      nodeContainer.appendChild(nodeHeader);
+      nodeContainer.appendChild(childrenContainer);
+    } else {
+      // No children, just add a spacer
+      const spacer = document.createElement('span');
+      spacer.style.width = '10px';
+      spacer.style.display = 'inline-block';
+      nodeHeader.appendChild(spacer);
+      nodeContainer.appendChild(nodeHeader);
+    }
+    
+    // Node label
+    const nodeLabel = document.createElement('span');
+    nodeLabel.className = 'node-label';
+    nodeLabel.textContent = node.data.Name || 'Unnamed';
+    
+    // Make items with localId interactive for highlighting
+    /* if (node.data.localId) {
+      nodeLabel.style.cursor = 'pointer';
+      nodeLabel.style.color = '#1976d2';
+      
+      // Add click handler for selection/highlighting
+      nodeLabel.addEventListener('click', async () => {
+        try {
+          const modelId = node.data.modelId;
+          const localId = node.data.localId;
+          
+          // Prepare data for highlighting
+          const highlighter = components.get(OBC.Highlighter);
+          const modelIdMap = {};
+          
+          // Include all children if any
+          let idsToHighlight = [localId];
+          if (node.data.children) {
+            try {
+              const childrenIds = JSON.parse(node.data.children);
+              idsToHighlight = idsToHighlight.concat(childrenIds);
+            } catch (e) {
+            }
+          }
+          
+          modelIdMap[modelId] = new Set(idsToHighlight);
+          
+          // Highlight the elements
+          highlighter.clear();
+          highlighter.highlightElements(modelIdMap);
+          
+          // Fit camera to selection
+          const camera = components.get(OBC.Camera);
+          if (camera) {
+            camera.fitToSelection();
+          }
+        } catch (error) {
+        }
+      });
+    } */
+    
+    nodeHeader.appendChild(nodeLabel);
+    container.appendChild(nodeContainer);
+  });
+}
+
+export const state = {
+  emptySelectionWarning: true,
+  defaultItemNameKey: "Name",
+  itemsDataConfig: {
+    attributesDefault: true,
+    relationsDefault: { attributes: false, relations: false },
+    relations: {
+      IsDefinedBy: { attributes: true, relations: true },
+      DefinesOcurrence: { attributes: false, relations: false },
+      ContainedInStructure: { attributes: true, relations: true },
+      ContainsElements: { attributes: false, relations: false },
+      Decomposes: { attributes: false, relations: false },
+    },
+  },
+}
+
+let itemsRowsCache = {};
+
+const attrMappings = {
+  _category: "Category",
+  _localId: "LocalId",
+  _guid: "Guid",
+}
+
+const addDataRow = (row, key, value) => {
+  const dataRow = {
+    data: {
+      Name: key in attrMappings ? attrMappings[key] : key,
+      Value: value,
+    },
+  };
+  if (!row.children) row.children = [];
+  row.children.push(dataRow)
+};
+
+const getItemRow = (modelId, propertyData, state) => {
+  if(!(modelId in itemsRowsCache)) itemsRowsCache[modelId] = new Map();
+  const modelProcessings = itemsRowsCache[modelId];
+  
+  const localId = (propertyData._localId).value;
+  
+  if (modelProcessings.has(localId)) {
+    return modelProcessings.get(localId);
+  }
+  
+  const name = (propertyData[state.defaultItemNameKey]) ?.value;
+  const category = (propertyData._category).value;
+  
+  const row = {
+    data: {
+      Name:
+        name?.toString().length > 0
+        ? name.toString()
+        : category ?? String(localId),
+    },
+  };
+  
+  modelProcessings.set(localId, row);
+  
+  for(const key in propertyData) {
+    const data = propertyData[key];
+    if(!Array.isArray(data)) {
+      addDataRow(row, key, data.value);
+    } else {
+      const relRow = {
+        data: {
+          Name: key
+        },
+      };
+    if (!row.children) row.children = [];
+    row.children.push(relRow);
+    
+    for (const item of data){
+      const relItemRow = getItemRow(modelId, item, state);
+      if(!relRow.children) relRow.children = [];
+      relRow.children.push(relItemRow);
+    }
+    }
+  }
+  return row;
+};
+
+export async function computeTableRow (components, modelIdMap, state){
+  const fragments = components.get(OBC.FragmentsManager);
+  if(Object.keys(modelIdMap).length === 0) itemsRowsCache = {};
+  
+  const rows = [];
+  
+  for (const modelId in modelIdMap){
+    const model = fragments.list.get(modelId);
+    if(!model) continue;
+    if(!(modelId in itemsRowsCache)) itemsRowsCache[modelId] = new Map();
+    const modelProcessings = itemsRowsCache[modelId];
+    const localIds = modelIdMap[modelId];
+    for (const localId of localIds){
+      let elementRow = modelProcessings.get(localId);
+      if(elementRow) {
+        rows.push(elementRow);
+        continue;
+      }
+      
+      const [elementAttrs] = await model.getItemsData(
+      [localId],
+      state.itemsDataConfig
+      );
+      
+      elementRow = getItemRow(modelId, elementAttrs, state);
+      rows.push(elementRow);
+      
+    }
+  }
+  return rows;
+};
 
 // Create the UI panel 
 export function createSelectionInfoPanel(state, propertiesRows) {
@@ -693,118 +601,7 @@ function createPanelElement() {
   selectionPanel.appendChild(header);
   
   return selectionPanel;
-}
-
-function renderStandardAttributes(attributesRows, parentElement) {
-  attributesRows.forEach(attributesRow => {
-    if (!attributesRow.data || 
-        attributesRow.data.Name === "PropertySets" || 
-        attributesRow.data.Name === "QuantitySets") {
-      return;
-    }
-    
-    // Create section header
-    const elementContainerName = document.createElement('div');
-    elementContainerName.className = 'attribute-type';
-    elementContainerName.innerHTML = `<span>${attributesRow.data.Name}</span>`;
-    elementContainerName.style.fontWeight = 'bold';
-    parentElement.appendChild(elementContainerName);
-    
-    // Create properties container if children exist
-    if (attributesRow.children && attributesRow.children.length > 0) {
-      const propsContainer = document.createElement('div');
-      propsContainer.className = 'properties-container';
-      
-      // Add each property
-      attributesRow.children.forEach(prop => {
-        propsContainer.appendChild(createPropertyRow(prop.data.Name, prop.data.Value));
-      });
-      
-      parentElement.appendChild(propsContainer);
-    }
-  });
-}
-
-function renderPropertyAndQuantitySets(attributesRows, parentElement) {
-  attributesRows.forEach(attributesRow => {
-    // Skip if not a property or quantity set or if it has no children
-    if (!attributesRow.data || 
-        (attributesRow.data.Name !== "PropertySets" && attributesRow.data.Name !== "QuantitySets") ||
-        !attributesRow.children || 
-        attributesRow.children.length === 0) {
-      return;
-    }
-    
-    // Create collapsible section header for the main category (PropertySets or QuantitySets)
-    const setsHeader = createCollapsibleHeader(attributesRow.data.Name);
-    parentElement.appendChild(setsHeader);
-    
-    // Create container for all property sets (initially hidden)
-    const setsContainer = document.createElement('div');
-    setsContainer.className = 'sets-container';
-    setsContainer.style.display = 'none';
-    parentElement.appendChild(setsContainer);
-    
-    // Add toggle behavior to the main category header
-    setsHeader.addEventListener('click', () => {
-      toggleCollapsible(setsHeader, setsContainer, attributesRow.data.Name);
-    });
-    
-    // Add each property set to the container
-    attributesRow.children.forEach(set => {
-      if (!set.data || !set.data.Name || !set.children || set.children.length === 0) {
-        return;
-      }
-      
-      // Create collapsible set section
-      const setSection = document.createElement('div');
-      setSection.className = 'property-set';
-      
-      const setHeader = createCollapsibleHeader(set.data.Name);
-      setHeader.className = 'set-header';
-      setSection.appendChild(setHeader);
-      
-      // Create set content container
-      const setContent = document.createElement('div');
-      setContent.className = 'set-content';
-      setContent.style.display = 'none';
-      
-      // Add toggle behavior
-      setHeader.addEventListener('click', (event) => {
-        event.stopPropagation();
-        toggleCollapsible(setHeader, setContent, set.data.Name);
-      });
-      
-      // Add each property to the set
-      set.children.forEach(prop => {
-        setContent.appendChild(createPropertyRow(prop.data.Name, prop.data.Value));
-      });
-      
-      setSection.appendChild(setContent);
-      setsContainer.appendChild(setSection);
-    });
-  });
-}
-
-
-function createCollapsibleHeader(title) {
-  const header = document.createElement('div');
-  header.className = 'attribute-type';
-  header.innerHTML = `▶ ${title}`;
-  header.style.cursor = 'pointer';
-  
-  return header;
-}
-
-function toggleCollapsible(header, content, title) {
-  if (content.style.display === 'none') {
-    content.style.display = 'block';
-    header.innerHTML = `▼ ${title}`;
-  } else {
-    content.style.display = 'none';
-    header.innerHTML = `▶ ${title}`;
-  }
-}
+};
 
 function createPropertyRow(name, value) {
   const propRow = document.createElement('div');
@@ -822,4 +619,212 @@ function createPropertyRow(name, value) {
   propRow.appendChild(propValue);
   
   return propRow;
+};
+
+
+function createCollapsibleHeader(title) {
+  const header = document.createElement('div');
+  header.className = 'attribute-type';
+  header.innerHTML = `▶ ${title}`;
+  header.style.cursor = 'pointer';
+  
+  return header;
+};
+
+function toggleCollapsible(header, content, title) {
+  if (content.style.display === 'none') {
+    content.style.display = 'block';
+    header.innerHTML = `▼ ${title}`;
+  } else {
+    content.style.display = 'none';
+    header.innerHTML = `▶ ${title}`;
+  }
+};
+
+function renderStandardAttributes(attributesRows, parentElement) {
+  // Create section header
+  const elementContainerName = document.createElement('div');
+  elementContainerName.className = 'attribute-type';
+  elementContainerName.innerHTML = `<span>Attributes</span>`;
+  elementContainerName.style.fontWeight = 'bold';
+  parentElement.appendChild(elementContainerName);
+  
+  attributesRows.forEach(attributesRow => {
+    if (!attributesRow.data || 
+        attributesRow.data.Name === "ContainedInStructure" || 
+        attributesRow.data.Name === "IsDefinedBy") {
+      return;
+    }
+    // Create properties container if children exist
+    if (attributesRow.data) {
+      const propsContainer = document.createElement('div');
+      propsContainer.className = 'properties-container';
+      propsContainer.appendChild(createPropertyRow(attributesRow.data.Name, attributesRow.data.Value));
+    
+      // Only append if we added any properties
+      if (propsContainer.children.length > 0) {
+        parentElement.appendChild(propsContainer);
+      }
+    }
+  });
+}
+
+function renderPropertyAndQuantitySets(attributesRows, parentElement) {
+  // Find relevant property/quantity sets
+  const relevantRows = attributesRows.filter(row => 
+    row.data && 
+    (row.data.Name === "ContainedInStructure" || row.data.Name === "IsDefinedBy") &&
+    row.children && 
+    row.children.length > 0
+  );
+  
+  // If none found, exit early
+  if (relevantRows.length === 0) return;
+  
+  // Process each relevant attribute row
+  relevantRows.forEach(attributesRow => {
+    // Create section header and container once per attribute row
+    const setsHeader = createCollapsibleHeader(attributesRow.data.Name);
+    const setsContainer = document.createElement('div');
+    setsContainer.className = 'sets-container';
+    setsContainer.style.display = 'none';
+    
+    // Add to parent
+    parentElement.appendChild(setsHeader);
+    parentElement.appendChild(setsContainer);
+    
+    // Add toggle behavior
+    setsHeader.addEventListener('click', () => {
+      toggleCollapsible(setsHeader, setsContainer, attributesRow.data.Name);
+    });
+    
+    // Common set processing function to reduce code duplication
+    const processSet = (set) => {
+      if (!set.data?.Name || !set.children?.length) return;
+      
+      // Create set section with header
+      const setSection = document.createElement('div');
+      setSection.className = 'property-set';
+      
+      const setHeader = createCollapsibleHeader(set.data.Name);
+      setHeader.className = 'set-header';
+      
+      const setContent = document.createElement('div');
+      setContent.className = 'set-content';
+      setContent.style.display = 'none';
+      
+      // Add toggle behavior
+      setHeader.addEventListener('click', (event) => {
+        event.stopPropagation();
+        toggleCollapsible(setHeader, setContent, set.data.Name);
+      });
+      
+      // Add elements
+      setSection.appendChild(setHeader);
+      setSection.appendChild(setContent);
+      setsContainer.appendChild(setSection);
+      
+      return { setSection, setContent };
+    };
+    
+    // Process all child sets based on type
+    attributesRow.children.forEach(set => {
+      const result = processSet(set);
+      if (!result) return;
+      const { setContent } = result;
+      
+      // Different processing for different attribute types
+      if (attributesRow.data.Name === "ContainedInStructure") {
+        // Direct property handling
+        set.children.forEach(prop => {
+          if (prop.data?.Name) {
+            setContent.appendChild(createPropertyRow(prop.data.Name, prop.data.Value));
+          }
+        });
+      } else {
+        // IsDefinedBy handling with nested values
+        set.children.forEach(prop => {
+          if (prop.children) {
+            prop.children.forEach(p => {
+              if (p.children && p.children[4].data) {
+                const valueChild = p.children[4];
+                setContent.appendChild(createPropertyRow(p.data.Name, valueChild.data.Value));
+              }
+            });
+          }
+        });
+      }
+    });
+  });
+};
+
+async function fetchProjectName(projectId) {
+  try {
+    const response = await authenticatedFetch(`http://localhost:8000/api/projects/${projectId}/`);
+    if (response.ok) {
+      const project = await response.json();
+      return project.name || `Project ${projectId}`;
+    }
+  } catch (error) {
+    console.error("Error fetching project details:", error);
+  }
+  return `Project ${projectId}`;
+}
+
+export async function crumbleMenu() {
+  const headerMenu = document.querySelector('.appHeader-menu');
+  if (!headerMenu) return;
+  
+  headerMenu.innerHTML = ''; // Clear existing content
+  
+  // Get URL parameters
+  const urlParams = new URLSearchParams(window.location.search);
+  const projectId = urlParams.get('projectId');
+  const fileId = urlParams.get('fileId');
+  const fileName = urlParams.get('fileName');
+  
+  // Create breadcrumb container
+  const breadcrumb = document.createElement('div');
+  breadcrumb.className = 'breadcrumb';
+
+  // Projects link
+  const projectsLink = document.createElement('a');
+  projectsLink.href = '/profile';
+  projectsLink.className = 'breadcrumb-item';
+  projectsLink.textContent = 'Projects';
+  breadcrumb.appendChild(projectsLink);
+  
+  // If we have a project ID, add project link
+  if (projectId) {
+    addSeparator(breadcrumb);
+    const projecName = await fetchProjectName(projectId);
+    const projectLink = document.createElement('a');
+    projectLink.href = `/project?id=${projectId}&name=${encodeURIComponent(projecName)}`;
+    projectLink.className = 'breadcrumb-item';
+    
+    
+    projectLink.textContent = projecName;
+    breadcrumb.appendChild(projectLink);
+  }
+  
+  // If we have a file name, add it as the current item
+  if (fileName) {
+    addSeparator(breadcrumb);
+    
+    const fileItem = document.createElement('span'); // Not a link since it's current
+    fileItem.className = 'breadcrumb-item current';
+    fileItem.textContent = decodeURIComponent(fileName);
+    breadcrumb.appendChild(fileItem);
+  }
+  
+  // Add the breadcrumb to the header menu
+  headerMenu.appendChild(breadcrumb);
+  
+  // Helper function to add separator
+  function addSeparator(parent) {
+    const separator = document.createElement('span');
+    separator.className = 'breadcrumb-separator';
+    separator.innerHTML = '&rsaquo;'; // Right single angle quote
+    parent.appendChild(separator);
+  }
 }

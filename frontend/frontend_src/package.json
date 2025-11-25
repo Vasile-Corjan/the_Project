@@ -12,13 +12,13 @@
     "vite": "^6.0.5"
   },
   "dependencies": {
-    "@thatopen/components": "^2.4.6",
-    "@thatopen/components-front": "^2.4.6",
-    "@thatopen/fragments": "^2.4.0",
-    "@thatopen/ui": "^2.4.1",
+    "@thatopen/components": "^3.2.6",
+    "@thatopen/components-front": "^3.2.14",
+    "@thatopen/fragments": "^3.2.11",
+    "@thatopen/ui": "^3.1.0",
     "axios": "^1.7.9",
     "jwt-decode": "^4.0.0",
-    "three": "^0.160.1",
-    "web-ifc": "^0.0.66"
+    "three": "^0.178.0",
+    "web-ifc": "^0.0.73"
   }
 }
