@@ -207,7 +207,7 @@ const handleFileUpload = async () => {
     const data = new Uint8Array(buffer);
     const model = await ifcLoader.load(data, true, fileName);
     model.name = fileName;
-    model.setLodMode(LodMode.ALL_GEOMETRY);
+    //model.setLodMode(FRAGS.LodMode.ALL_GEOMETRY);
   };
   fileOpener.click();
 }
@@ -218,6 +218,7 @@ fragments.list.onItemSet.add(({value: model}) => {
   model.graphicsQuality = 1;
   model.useCamera(world.camera.three);
   world.scene.three.add(model.object);
+  
   fragments.core.update(true);
 });
 
@@ -253,8 +254,6 @@ const getLoadedModelsBoundings = (model) => {
   return box;
 };
 
-
-
 const getBaseElevation = async (model) => {
   const storeys = await model.getItemsOfCategories([/BUILDINGSTOREY/]);  
   const localIds = Object.values(storeys).flat();
@@ -266,14 +265,7 @@ const getBaseElevation = async (model) => {
   // If found, return its elevation, otherwise return null or default value
   return baseStorey ? baseStorey.Elevation.value : null;
 };
-console.log(fragments.list)
 
-fragments.core.onModelLoaded.add(async (model) => {
-    console.log(model.box.min.y)
-  //console.log(getLoadedModelsBoundings(model))
-  grid.three.position.y = model.box.min.y;
-  console.log(grid.three.position.y)
-})
 
 /* const loadedModels = getLoadedModels().map(model =>
     fragments.groups.get(model.modelId)
@@ -298,10 +290,11 @@ if(loadedModels.length > 0){
 // CLIPPER
 const clipper = components.get(OBC.Clipper);
 const clipperColor = new THREE.Color("#FBF0C3");
+
+
 // CliperStyle
 const clipStyler = components.get(OBCF.ClipStyler)
 clipStyler.world = world
-
 // Creating a clipper style
 clipStyler.styles.set("Black", {
   linesMaterial: new LineMaterial({color: "black", linewidth: 2}),
@@ -325,7 +318,6 @@ container.ondblclick = () =>{
     clipper.config.size = 10;
     clipper.config.color = clipperColor;
     
-
     if (clipper.list.size >= 0 && !document.getElementById("deleting-clip-plane")) {
       const deleteClipButton = document.createElement("button"); 
       deleteClipButton.id = "deleting-clip-plane";
@@ -346,40 +338,42 @@ container.ondblclick = () =>{
     };
   };
 };
-
 // MEASURING DISTANCE
 const dimensions = components.get(OBCF.LengthMeasurement);
 dimensions.world = world;
-dimensions.enabled = false;
+//dimensions.enabled = false;
 dimensions.units = "mm";
 dimensions.rounding = 0;
-dimensions.li
+dimensions.snappings = [FRAGS.SnappingClass.POINT]
+
 
 document.getElementById("dim").addEventListener('click', () =>{
   dimensions.enabled = true;
+  highlighter.clear()
   if (dimensions.enabled){
-    highlighter.enabled = false
+    highlighter.enabled = false;
     container.onclick = () => {
       const result = caster.castRay(fragments.meshes)
       if (!world.camera.controls.active && result !== null) {
         dimensions.create();
-        dimensions.snapDistance = 0.1;
-        const dimColor = new THREE.Color("red");
+        dimensions.snapDistance = 0.5;
+        
+        dimensions.linesEndpointElement.color = 'green'
+        const dimColor = new THREE.Color("green");
         dimensions.color = dimColor;
         
-        // Stop the dimension creation and disablening it
-        window.onkeydown = (event) => {
+        // Handle keyboard actions while creating dimensions
+        const handleKeyDown = (event) => {
           if (event.code === "Escape") {
             dimensions.endCreation();
-            dimensions.enabled = false
-          }
-        };
-        // Delete the newly created dimension
-        window.onkeydown = (event) => {
-          if (event.code === "Delete") {
+            dimensions.enabled = false;
+            window.removeEventListener("keydown", handleKeyDown);
+            highlighter.enabled = true;
+          } else if (event.code === "Delete") {
             dimensions.delete();
           }
         };
+        window.addEventListener("keydown", handleKeyDown);
       
         // Delete all created dimesions by clicking the button "Delete All Dimensions"
         if (dimensions.list.size > 0 && !document.getElementById("deleting-dimensions")) {
@@ -392,6 +386,7 @@ document.getElementById("dim").addEventListener('click', () =>{
             dimensions.list.clear(); 
             if (dimensions.list.size === 0) {
               dimensions.enabled = false;
+              window.removeEventListener("keydown", handleKeyDown);
             }
             document.getElementById("container").removeChild(deleteDimension);
             highlighter.enabled = true;
@@ -401,7 +396,6 @@ document.getElementById("dim").addEventListener('click', () =>{
     };
   }
 });
-
 
 highlighter.events.select.onHighlight.add(async (modelIdMap) => {
   if(modelIdMap && !clipper.enabled){

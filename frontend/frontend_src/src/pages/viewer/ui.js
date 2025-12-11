@@ -28,11 +28,12 @@ async function handleModelLoaded(model, components, fragments) {
   if (!model) return;
   const metadata = await model.getMetadata();
   const schemaValue = metadata.schema || '';
+  const viewDefinition = metadata.descriptions[0];
   loadedModels.push({
     name: model.name,
     modelId: model.modelId,
     schema: schemaValue,
-    viewDef: '',
+    viewDef: viewDefinition,
   }); 
   
   const loadModelbutton = document.querySelector('.loaded-model');
@@ -146,6 +147,7 @@ export function updateDataPanel(dataPanel, components, fragments) {
     
     const modelViewdef = document.createElement('span');
     modelViewdef.textContent = loadedModel.viewDef || "";
+    
 
     const modelDiv = document.createElement('div');
     modelDiv.className = 'modelDiv';

@@ -15,6 +15,7 @@ export async function Project() {
       setupHeaderNavigation(projectName);
       settingsTab();
       setupDropdown();
+      populateUserInfo();
       uploadFile();
       
       const projectData = await loadProjectData(projectId);
@@ -74,6 +75,18 @@ function setupDropdown() {
       e.stopPropagation();
     });
   }
+}
+
+function populateUserInfo() {
+  const username = localStorage.getItem('username') || 'User';
+  const name = localStorage.getItem('name') || username;
+
+  const test1 = document.querySelector('.name');
+  const test2 = document.querySelector('.username');
+
+  test1.textContent = name;
+  test2.textContent = username
+
 }
 
 function setupHeaderNavigation(projectName){

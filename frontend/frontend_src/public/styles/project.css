@@ -91,6 +91,13 @@ body {
   cursor: pointer;
 }
 
+.user-name-username{
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  
+}
+
 .dropbtn {
   border-radius: 50%;
   cursor: pointer;
