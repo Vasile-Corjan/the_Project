@@ -1,4 +1,6 @@
 import { authenticatedFetch } from '../api.js';
+import { initializeUserDropdown } from '../utils/userDropdown.js';
+
 
 function setupHeaderNavigation(userElement){
   const headerLeft = document.querySelector(".appHeader-bar-left");
@@ -17,27 +19,6 @@ function setupHeaderNavigation(userElement){
   nav.appendChild(userItem);
 
   headerLeft.appendChild(nav);
-}
-
-function setupDropdown() {
-  const userAvatar = document.querySelector('.appHeader-user img');
-  const dropdown = document.querySelector('.dropdown-content');
-      
-  if (userAvatar && dropdown) {
-    userAvatar.addEventListener('click', function(e) {
-      dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
-      e.stopPropagation();
-    });
-    
-    document.addEventListener('click', function() {
-      dropdown.style.display = 'none';
-    });
-
-    // Prevents closing the dropdown when the user clicks on it
-    dropdown.addEventListener('click', function(e) {
-      e.stopPropagation();
-    });
-  }
 }
 
 async function loadUserProjects() {
@@ -123,7 +104,6 @@ function createProject() {
   }
 }
 
-
 export async function Profile() {
   // Check if user is authenticated
   const token = localStorage.getItem('access_token');
@@ -141,7 +121,7 @@ export async function Profile() {
     html,
     afterRender: async function() {
       try {
-        setupDropdown();
+        initializeUserDropdown();
         createProject();
         const userResponse = await authenticatedFetch('http://localhost:8000/api/profile/user/');
         const userData = await userResponse.json();

@@ -91,44 +91,92 @@ body {
   cursor: pointer;
 }
 
-.user-name-username{
-  display: flex;
-  justify-content: center;
-  flex-direction: column;
-  
-}
-
 .dropbtn {
   border-radius: 50%;
   cursor: pointer;
+  border: 2px solid transparent;
+  transition: border-color 0.2s ease;
+}
+
+.dropbtn:hover {
+  border-color: rgba(255, 255, 255, 0.5);
 }
 
 .dropdown-content {
   display: none;
   position: absolute;
   right: 0;
-  top: 100%;
-  background-color: #f9f9f9;
-  min-width: 160px;
-  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  top: calc(100% + 8px);
+  background-color: #ffffff;
+  min-width: 200px;
+  box-shadow: 0 8px 24px rgba(140, 149, 159, 0.2);
+  border: 1px solid #d0d7de;
+  border-radius: 12px;
   z-index: 1000;
-  border-radius: 6px;
-  margin-top: 5px;
-  margin-bottom: 5px;
+  overflow: hidden;
+}
+
+.dropdown-header {
+  padding: 16px;
+  background-color: #f6f8fa;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.user-avatar {
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.user-details {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+
+.user-fullname {
+  font-size: 14px;
+  font-weight: 600;
+  color: #24292f;
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.user-username {
+  font-size: 12px;
+  color: #57606a;
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dropdown-divider {
+  height: 1px;
+  background-color: #d0d7de;
+  margin: 8px 0;
 }
 
 .dropdown-content a {
-  color: black;
-  padding: 12px 10px;
+  color: #24292f;
+  padding: 8px 16px;
   text-decoration: none;
   display: block;
-  text-align: left; 
-  transition: background-color 0.2s ease;
+  text-align: left;
+  font-size: 14px;
+  transition: background-color 0.1s ease;
 }
 
-.dropdown-content a:hover{
-  background-color: #d1d5da;
-  border-radius: 6px;
+.dropdown-content a:hover {
+  background-color: #0969da;
+  color: #ffffff;
 }
 
 /* Mobile menu toggle button - hidden by default on desktop */

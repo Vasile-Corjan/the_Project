@@ -1,4 +1,5 @@
 import {authenticatedFetch} from '../api.js'
+import {initializeUserDropdown} from '../utils/userDropdown.js'
 
 export async function Project() {
   
@@ -14,8 +15,7 @@ export async function Project() {
 
       setupHeaderNavigation(projectName);
       settingsTab();
-      setupDropdown();
-      populateUserInfo();
+      initializeUserDropdown();
       uploadFile();
       
       const projectData = await loadProjectData(projectId);
@@ -54,39 +54,6 @@ function updateProjectDescription(projectName, projectDescription) {
     descriptionArea.textContent = projectDescription;
 
   }
-}
-
-function setupDropdown() {
-  const userAvatar = document.querySelector('.appHeader-user img');
-  const dropdown = document.querySelector('.dropdown-content');
-      
-  if (userAvatar && dropdown) {
-    userAvatar.addEventListener('click', function(e) {
-      dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
-      e.stopPropagation();
-    });
-    
-    document.addEventListener('click', function() {
-      dropdown.style.display = 'none';
-    });
-
-    // Prevents closing the dropdown when the user clicks on it
-    dropdown.addEventListener('click', function(e) {
-      e.stopPropagation();
-    });
-  }
-}
-
-function populateUserInfo() {
-  const username = localStorage.getItem('username') || 'User';
-  const name = localStorage.getItem('name') || username;
-
-  const test1 = document.querySelector('.name');
-  const test2 = document.querySelector('.username');
-
-  test1.textContent = name;
-  test2.textContent = username
-
 }
 
 function setupHeaderNavigation(projectName){

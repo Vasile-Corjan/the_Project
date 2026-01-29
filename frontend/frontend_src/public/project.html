@@ -18,20 +18,21 @@
         <div class="appHeader-user" tabindex="0" aria-haspopup="true" aria-expanded="false">
           <img src="./static/avatar-user.png" alt="User Avatar" sizes="32" height="32" width="32" class="dropbtn">
           <div class="dropdown-content" role="menu">
-            <div class="global-user-p.1">
-              <div class="user">
-                <img src="./static/avatar-user.png" alt="User Avatar" sizes="32" height="32" width="32" class="dropbtn">
-                <div class="user-name-username">
-                  <span class="name"></span>
-                  <span class="username"></span>
+            <div class="dropdown-header">
+              <div class="user-info">
+                <img src="./static/avatar-user.png" alt="User Avatar" sizes="40" height="40" width="40"
+                  class="user-avatar">
+                <div class="user-details">
+                  <span class="user-fullname"></span>
+                  <span class="user-username"></span>
                 </div>
               </div>
             </div>
-            <div class="global-user-p 2">
-              <a href="#">Settings</a>
-              <a href="#">About</a>
-              <a href="#" onclick="localStorage.clear(); window.location.href='/'">Log out</a>
-            </div>
+            <div class="dropdown-divider"></div>
+            <a href="#">Settings</a>
+            <a href="#">About</a>
+            <div class="dropdown-divider"></div>
+            <a href="#" onclick="localStorage.clear(); window.location.href='/'">Log out</a>
           </div>
         </div>
       </div>

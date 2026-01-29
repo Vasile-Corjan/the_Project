@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="./styles/profile.css">
-    <title>Profile</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="./styles/profile.css">
+  <title>Profile</title>
 </head>
+
 <body>
   <header class="appHeader">
     <div class="appHeader-bar">
@@ -17,8 +19,20 @@
         <div class="appHeader-user" tabindex="0" aria-haspopup="true" aria-expanded="false">
           <img src="./static/avatar-user.png" alt="User Avatar" sizes="32" height="32" width="32" class="dropbtn">
           <div class="dropdown-content" role="menu">
+            <div class="dropdown-header">
+              <div class="user-info">
+                <img src="./static/avatar-user.png" alt="User Avatar" sizes="40" height="40" width="40"
+                  class="user-avatar">
+                <div class="user-details">
+                  <span class="user-fullname"></span>
+                  <span class="user-username"></span>
+                </div>
+              </div>
+            </div>
+            <div class="dropdown-divider"></div>
             <a href="#">Settings</a>
             <a href="#">About</a>
+            <div class="dropdown-divider"></div>
             <a href="#" onclick="localStorage.clear(); window.location.href='/'">Log out</a>
           </div>
         </div>
@@ -67,7 +81,7 @@
               <div class="radio-group">
                 <label>
                   <input type="radio" name="visibility" value="public">
-                  Public 
+                  Public
                 </label>
                 <label>
                   <input type="radio" name="visibility" value="private" checked>
@@ -79,31 +93,33 @@
           </div>
           <div class="card-item">
             <h4>Introduce yourself</h4>
-            <p>Share information about yourself by creating a profile, which appears at the top of your profile page.</p>
-              <ul class="profile-form">
-                <li>
-                  <label for="">- 👋 Hi, I'm ...</label>
-                </li>
-                <li>
-                  <label for="">- 👀 I'm interested in ...</label>
-                </li>
-                <li>
-                  <label for="">- 🌱 I'm currently learning ...</label>
-                </li>
-                <li>
-                  <label for="">- 💞️ I'm looking to collaborate on ...</label>
-                </li>
-                <li>
-                  <label for="">- 📫 How to reach me ...</label>
-                </li>
-                <li>
-                  <label for="">- ⚡ Fun fact ...</label>
-                </li>
-              </ul>
+            <p>Share information about yourself by creating a profile, which appears at the top of your profile page.
+            </p>
+            <ul class="profile-form">
+              <li>
+                <label for="">- 👋 Hi, I'm ...</label>
+              </li>
+              <li>
+                <label for="">- 👀 I'm interested in ...</label>
+              </li>
+              <li>
+                <label for="">- 🌱 I'm currently learning ...</label>
+              </li>
+              <li>
+                <label for="">- 💞️ I'm looking to collaborate on ...</label>
+              </li>
+              <li>
+                <label for="">- 📫 How to reach me ...</label>
+              </li>
+              <li>
+                <label for="">- ⚡ Fun fact ...</label>
+              </li>
+            </ul>
           </div>
         </div>
-      
+
     </main>
   </div>
 </body>
+
 </html>
