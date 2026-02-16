@@ -5,22 +5,18 @@ from main_app.models import Project, ProjectFiles
 
 class UserSerializer(serializers.ModelSerializer):
   password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
-  confirm_password = serializers.CharField(write_only=True, required=True)
   first_name = serializers.CharField(required=True)
   last_name = serializers.CharField(required=True)
   email = serializers.EmailField(required=True)
+
   class Meta:
     model = User
-    fields = ("id", "first_name", "last_name", "username", "password", "confirm_password", "email")
+    fields = ("id", "first_name", "last_name", "username", "password", "email")
 
   def validate(self, attrs):
-    if attrs['password'] != attrs['confirm_password']:
-      raise serializers.ValidationError({"password": "Password fields don't match."})
-    
     email = attrs.get('email')
     if User.objects.filter(email=email).exists():
       raise serializers.ValidationError({"email": "A user with this email already exists."})
-    
     return attrs
 
   def create(self, validate_data):
@@ -33,6 +29,7 @@ class UserSerializer(serializers.ModelSerializer):
     user.set_password(validate_data['password'])
     user.save()
     return user
+
 
 class ProjectSerializer(serializers.ModelSerializer):
   class Meta:

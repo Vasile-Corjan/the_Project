@@ -11,6 +11,11 @@ export async function Register() {
         if (form) {
           form.addEventListener('submit', async (e) => {
             e.preventDefault();
+
+            if(form.password.value !== form.confirm_password.value){
+              alert("Password fields don't match.")
+              return;
+            }
                 
             const formData = {
               first_name: form.first_name.value,
@@ -18,15 +23,14 @@ export async function Register() {
               username: form.username.value,
               email: form.email.value,
               password: form.password.value,
-              confirm_password: form.confirm_password.value
             };
             
-            const noChar = [':','?','|','/','\\','*','"','<','>'];
+            const noChar = [':','?','|','/','\\','*','"','<','>',' '];
             const contains = noChar.some(char => formData.username.includes(char));
-
+            
             if(contains){
               alert(`Registration failed. Your username contains bad characters. Avoid these characters: ${noChar}`);
-            } else{    
+            }else{    
               try {
                 const response = await fetch('http://localhost:8000/api/register/user/', {
                   method: 'POST',
@@ -39,7 +43,7 @@ export async function Register() {
                 const data = await response.json();
 
                 if (response.ok) {
-                  const loginResponse = await fetch('http://localhost:8000/api/token/',{
+                  const loginResponse = await fetch('http://localhost:8000/api/signin/',{
                     method: 'POST',
                     headers: {
                       'Content-Type': 'application/json',

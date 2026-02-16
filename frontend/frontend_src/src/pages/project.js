@@ -156,9 +156,11 @@ async function loadProjectSettings(projectId, projectName) {
     
     // Set visibility radio button
     const visibilityRadios = document.getElementsByName('visibility');
-    for (const radio of visibilityRadios) {
-      radio.checked = radio.value === projectData.visibility;
-    }
+    visibilityRadios.forEach(radio => {
+      if(radio.value === projectData.visibility){
+        radio.checked = true;
+      }
+    })
   } catch (error) {
     console.error('Error loading project settings:', error);
   }
@@ -176,8 +178,8 @@ function setupSettingsForm(projectId) {
         const updatedName = document.getElementById('project-name').value;
         const updatedDescription = document.getElementById('project-description').value;
         const visibilityRadios = document.getElementsByName('visibility');
-        let visibility = 'private';
         
+        let visibility = 'public';
         for (const radio of visibilityRadios) {
           if (radio.checked) {
             visibility = radio.value;
