@@ -1,7 +1,20 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.contrib.auth.password_validation import validate_password
 from main_app.models import Project, ProjectFiles
+
+class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
+    @classmethod
+    
+    def get_token(cls, user):
+      token = super().get_token(user)
+      return token 
+
+    def validate(self, attrs):
+      data = super().validate(attrs)
+      data['username'] = self.user.username
+      return data
 
 class UserSerializer(serializers.ModelSerializer):
   password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
