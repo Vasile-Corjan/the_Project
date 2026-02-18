@@ -33,6 +33,29 @@ export async function authenticatedFetch(url, options = {}) {
   }
 }
 
+export async function logout(){
+  const refresh_token = localStorage.getItem('refresh_token');
+
+  if (refresh_token){
+    try{
+      await fetch('http://localhost:8000/api/token/refresh/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({refresh: refresh_token})
+    });
+  } catch (error) {
+      console.error('Logout error', error)
+    }
+}
+  localStorage.removeItem('access-token');
+  localStorage.removeItem('refresh-token');
+  localStorage.removeItem('username');
+
+  window.location.href = '/signin';
+}
+
 async function refreshToken() {
   const refresh_token = localStorage.getItem('refresh_token');
 
