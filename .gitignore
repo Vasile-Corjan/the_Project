@@ -24,6 +24,8 @@ dist-ssr
 *.sln
 *.sw?
 
-#Media
-
+# Media
 /backend/backend/media/
+
+# Envirnoments
+.env
