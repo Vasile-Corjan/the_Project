@@ -61,7 +61,7 @@ window.onpopstate = renderPage;
 
 document.addEventListener("DOMContentLoaded", async () => {
   document.body.addEventListener("click", (event) => {
-      if (event.target.tagName === "a" && event.target.dataset.route) {
+      if (event.target.tagName === "A" && event.target.dataset.route) {
           navigateTo(event, event.target.getAttribute("href"));
       }
   });
