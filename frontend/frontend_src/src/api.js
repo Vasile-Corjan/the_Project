@@ -49,8 +49,8 @@ export async function logout(){
       console.error('Logout error', error)
     }
 }
-  localStorage.removeItem('access-token');
-  localStorage.removeItem('refresh-token');
+  localStorage.removeItem('access_token');
+  localStorage.removeItem('refresh_token');
   localStorage.removeItem('username');
 
   window.location.href = '/signin';
