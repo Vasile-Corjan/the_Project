@@ -9,7 +9,7 @@ from rest_framework import viewsets, status, generics
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.views import APIView
 from main_app.models import Project, ProjectFiles
-from .serializers import UserSerializer, ProjectSerializer, ProjectFileSerializer
+from .serializers import UserSerializer, ProjectSerializer, ProjectFileSerializer, MyTokenObtainPairSerializer
 
 
 
