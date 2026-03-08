@@ -1,16 +1,41 @@
-.form {
+/* ===========================
+   RESET & BASE STYLES
+   =========================== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body.signin-page {
+    font-family: Arial, sans-serif;
+    background-color: #f6f8fa;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow-x: hidden;
+}
+
+/* ===========================
+   SIGNIN FORM
+   =========================== */
+.signin-page_form {
     display: flex;
     flex-direction: column;
     gap: 10px;
     max-width: 350px;
+    width: 100%;
     background-color: #fff;
     padding: 50px;
     border-radius: 20px;
     position: relative;
-    margin:auto;
-  }
-  
-  .title {
+    margin: auto;
+    margin-top: 169px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.signin-page_title {
     font-size: 28px;
     color: royalblue;
     font-weight: 600;
@@ -20,9 +45,10 @@
     align-items: center;
     padding-left: 30px;
     margin-bottom: 0;
-  }
-  
-  .title::before,.title::after {
+}
+
+.signin-page_title::before,
+.signin-page_title::after {
     position: absolute;
     content: "";
     height: 16px;
@@ -30,102 +56,122 @@
     border-radius: 50%;
     left: 0px;
     background-color: royalblue;
-  }
-  
-  .title::before {
+}
+
+.signin-page_title::before {
     width: 18px;
     height: 18px;
     background-color: royalblue;
-  }
-  
-  .title::after {
+}
+
+.signin-page_title::after {
     width: 18px;
     height: 18px;
-    animation: pulse 1s linear infinite;
-  }
-  
-  .message, .signin {
+    animation: signin-pulse 1s linear infinite;
+}
+
+.signin-page_message,
+.signin-page_signup-link {
     color: rgba(88, 87, 87, 0.822);
     font-size: 14px;
-  }
-  
-  .signin {
+}
+
+.signin-page_signup-link {
     text-align: center;
-  }
-  
-  .signin a {
+}
+
+.signin-page_signup-link a {
     color: royalblue;
-  }
-  
-  .signin a:hover {
-    text-decoration: underline royalblue;
-  }
-  
-  .flex {
+    text-decoration: none;
+}
+
+.signin-page_signup-link a:hover {
+    text-decoration: underline;
+}
+
+.signin-page_flex {
     display: flex;
+    flex-direction: column;
+}
+
+.signin-page_form label {
+    position: relative;
+}
+
+.signin-page_input {
     width: 100%;
-    justify-content: space-between;
-    gap: 20px;
-  }
-  
-  .form label .input {
-    width: 100%;
-    padding: 10px;
-    margin: 0 0 10px 0;
+    padding: 10px 10px 20px 10px;
     outline: 0;
     border: 1px solid rgba(105, 105, 105, 0.397);
     border-radius: 10px;
-    box-sizing: border-box;
-  }
-  
-  .form label .input + span{
+    padding-top: 20px;
+    padding-bottom: 10px;
+}
+
+.signin-page_input + span {
     position: absolute;
     left: 10px;
-    top: 15px;
-    color: grey;
+    top: 0px;
     font-size: 0.9em;
     cursor: text;
     transition: 0.3s ease;
-  }
-  
-  .form label .input:placeholder-shown + span {
-    top: 15px;
+}
+
+.signin-page_input:placeholder-shown + span {
+    top: 12.5px;
     font-size: 0.9em;
-  }
-  
-  .form label .input:focus + span,.form label .input:valid + span {
-    top: 30px;
+}
+
+.signin-page_input:focus + span,
+.signin-page_input:valid + span {
+    color: royalblue;
+    top: 0px;
     font-size: 0.7em;
     font-weight: 600;
-  }
-  
-  .form label .input:valid + span {
+}
+
+.signin-page_input:valid + span {
     color: green;
-  }
-  
-  .submit {
+}
+
+.signin-page_submit {
     border: none;
     outline: none;
-    background-color: royalblue;
     padding: 10px;
     border-radius: 10px;
     color: #fff;
     font-size: 16px;
     transform: .3s ease;
-  }
-  
-  .submit:hover {
+    background-color: royalblue;
+    cursor: pointer;
+}
+
+.signin-page_submit:hover {
     background-color: rgb(56, 90, 194);
-  }
-  
-  @keyframes pulse {
+}
+
+@keyframes signin-pulse {
     from {
-      transform: scale(0.9);
-      opacity: 1;
+        transform: scale(0.9);
+        opacity: 1;
     }
-  
+
     to {
-      transform: scale(1.8);
-      opacity: 0;
+        transform: scale(1.8);
+        opacity: 0;
     }
-  }
+}
+
+/* ===========================
+   RESPONSIVE DESIGN
+   =========================== */
+@media (max-width: 480px) {
+    .signin-page_form {
+        padding: 30px 20px;
+        margin: 10px;
+    }
+
+    .signin-page_title {
+        font-size: 24px;
+    }
+}

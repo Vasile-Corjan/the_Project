@@ -40,20 +40,26 @@ async function renderPage() {
   const path = window.location.pathname;
   const pageFunction = routes[path];
 
+  const appElement = document.getElementById("app");
+  if (!appElement) {
+    console.error("Element with id 'app' not found in the DOM.");
+    return;
+  }
+
   if (pageFunction) {
     const page = await fetchPage(path, pageFunction);
 
     if (typeof page === 'object' && page.html) {
-      document.getElementById("app").innerHTML = page.html;
+      appElement.innerHTML = page.html;
 
       if (page.afterRender && typeof page.afterRender === 'function') {
         page.afterRender();
       }
     } else {
-      document.getElementById("app").innerHTML = page;
+      appElement.innerHTML = page;
     }
   } else {
-    document.getElementById("app").innerHTML = "<h1>404 Page Not Found</h1>";
+    appElement.innerHTML = "<h1>404 Page Not Found</h1>";
   }
 }
 

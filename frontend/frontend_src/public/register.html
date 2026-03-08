@@ -4,49 +4,59 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="./styles/register.css">
-  <title>signup</title>
+  <title>Register - AEClab</title>
+  <link rel="stylesheet" href="styles/register.css">
 </head>
 
-<body>
-  <main>
-    <form class="form" id="registerForm">
-      <h1 class="title">Register</h1>
-      <p class="message">Sign-up now and get full access to our app. </p>
-      <div class="flex">
-        <label>
-          <span>First Name</span>
-          <input required="required" placeholder="" type="text" class="input" name="first_name" id="first_name">
-        </label>
-        <label>
-          <span>Last Name</span>
-          <input required="required" placeholder="" type="text" class="input" name="last_name" id="last_name">
-        </label>
-      </div>
+<body class="register-page">
+  <header class="register-page_header">
+    <div class="register-page_logo">
+      <a href="/"><img src="logo.png" alt="Logo"></a>
+    </div>
+  </header>
+  <form class="register-page_form" id="registerForm">
+    <p class="register-page_title">Register</p>
+    <p class="register-page_message">Signup now and get full access to our app.</p>
+
+    <div class="register-page_flex">
       <label>
-        <span>Email</span>
-        <input placeholder="" type="email" class="input" name="email" id="email" required>
+        <input class="register-page_input" type="text" placeholder="" name="first_name" required>
+        <span>First Name</span>
       </label>
+
       <label>
-        <span>Username</span>
-        <input placeholder="" type="text" class="input" name="username" id="username" required>
-        <p id="username-helper" class="help-message">Username may only contain alphanumeric characters or single
-          hyphens, and cannot begin or end with a hyphen.</p>
+        <input class="register-page_input" type="text" placeholder="" name="last_name" required>
+        <span>Last Name</span>
       </label>
-      <label>
-        <span>Password</span>
-        <input required="required" placeholder="" type="password" class="input" name="password" id="password">
-        <p id="password-helper" class="help-message">Password should be at least 15 characters OR at least 8 characters
-          including a number and a lowercase letter.</p>
-      </label>
-      <label>
-        <span>Confirm password</span>
-        <input placeholder="" type="password" class="input" name="confirm_password" id="confirm_password">
-      </label>
-      <button type="submit" class="submit">Submit</button>
-      <p class="signin">Already have an acount ? <a href="signin">Sign in</a></p>
-    </form>
-  </main>
+    </div>
+
+    <label>
+      <input class="register-page_input" type="text" placeholder="" name="username" required>
+      <span>Username</span>
+    </label>
+
+    <label>
+      <input class="register-page_input" type="email" placeholder="" name="email" required>
+      <span>Email</span>
+    </label>
+
+    <label>
+      <input class="register-page_input" type="password" placeholder="" name="password" required>
+      <span>Password</span>
+    </label>
+    <p class="register-page_help-message">Password must be at least 8 characters long</p>
+
+    <label>
+      <input class="register-page_input" type="password" placeholder="" name="confirm_password" required>
+      <span>Confirm password</span>
+    </label>
+
+    <button class="register-page_submit">Submit</button>
+
+    <p class="register-page_signin-link">
+      Already have an account? <a href="signin">Sign in</a>
+    </p>
+  </form>
 </body>
 
 </html>

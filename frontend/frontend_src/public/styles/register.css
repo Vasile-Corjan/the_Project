@@ -1,16 +1,41 @@
-.form {
+/* ===========================
+   RESET & BASE STYLES
+   =========================== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body.register-page {
+    font-family: Arial, sans-serif;
+    background-color: #f6f8fa;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow-x: hidden;
+}
+
+/* ===========================
+   REGISTER FORM
+   =========================== */
+.register-page_form {
     display: flex;
     flex-direction: column;
     gap: 10px;
     max-width: 350px;
+    width: 100%;
     background-color: #fff;
     padding: 20px;
     border-radius: 20px;
     position: relative;
-    margin:auto;
-  }
-  
-  .title {
+    margin: auto;
+    margin-top: 169px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.register-page_title {
     font-size: 28px;
     color: royalblue;
     font-weight: 600;
@@ -20,9 +45,10 @@
     align-items: center;
     padding-left: 30px;
     margin-bottom: 0;
-  }
-  
-  .title::before,.title::after {
+}
+
+.register-page_title::before,
+.register-page_title::after {
     position: absolute;
     content: "";
     height: 16px;
@@ -30,84 +56,95 @@
     border-radius: 50%;
     left: 0px;
     background-color: royalblue;
-  }
-  
-  .title::before {
+}
+
+.register-page_title::before {
     width: 18px;
     height: 18px;
     background-color: royalblue;
-  }
-  
-  .title::after {
+}
+
+.register-page_title::after {
     width: 18px;
     height: 18px;
-    animation: pulse 1s linear infinite;
-  }
-  
-  .message, .signin {
+    animation: register-pulse 1s linear infinite;
+}
+
+.register-page_message,
+.register-page_signin-link {
     color: rgba(88, 87, 87, 0.822);
     font-size: 14px;
-  }
-  
-  .signin {
+}
+
+.register-page_signin-link {
     text-align: center;
-  }
-  
-  .signin a {
+}
+
+.register-page_signin-link a {
     color: royalblue;
-  }
-  
-  .signin a:hover {
-    text-decoration: underline royalblue;
-  }
-  
-  .flex {
+    text-decoration: none;
+}
+
+.register-page_signin-link a:hover {
+    text-decoration: underline;
+}
+
+.register-page_flex {
     display: flex;
     width: 100%;
     justify-content: space-between;
     gap: 20px;
-  }
-  
-  .form label .input {
+}
+
+.register-page_form label {
+    position: relative;
+    display: block;
+}
+
+.register-page_input {
     width: 100%;
-    padding: 10px;
-    margin: 0;
+    padding: 10px 10px 20px 10px;
     outline: 0;
     border: 1px solid rgba(105, 105, 105, 0.397);
     border-radius: 10px;
-    box-sizing: border-box;
-  }
-  
-  .form label .input + span{
+    padding-top: 20px;
+    padding-bottom: 10px;
+}
+
+.register-page_input + span {
     position: absolute;
     left: 10px;
-    top: 15px;
-    color: grey;
+    top: 0px;
     font-size: 0.9em;
     cursor: text;
     transition: 0.3s ease;
-  }
-  
-  .form label .input:placeholder-shown + span {
-    top: 15px;
+}
+
+.register-page_input:placeholder-shown + span {
+    top: 12.5px;
     font-size: 0.9em;
-  }
-  
-  .form label .input:focus + span,.form label .input:valid + span {
-    top: 30px;
+}
+
+.register-page_input:focus + span,
+.register-page_input:valid + span {
+    color: royalblue;
+    top: 0px;
     font-size: 0.7em;
     font-weight: 600;
-  }
-  
-  .form label .input:valid + span {
+}
+
+.register-page_input:valid + span {
     color: green;
-  }
-  .help-message{
-    margin: 5px 0 10px 0;
+}
+
+.register-page_help-message {
+    margin: 5px 5px 0 5px;
     font-size: 12px;
     color: grey;
-  }
-  .submit {
+    
+}
+
+.register-page_submit {
     border: none;
     outline: none;
     background-color: royalblue;
@@ -116,20 +153,43 @@
     color: #fff;
     font-size: 16px;
     transform: .3s ease;
-  }
-  
-  .submit:hover {
+    cursor: pointer;
+    margin-top: 36px;
+}
+
+.register-page_submit:hover {
     background-color: rgb(56, 90, 194);
-  }
-  
-  @keyframes pulse {
+}
+
+@keyframes register-pulse {
     from {
-      transform: scale(0.9);
-      opacity: 1;
+        transform: scale(0.9);
+        opacity: 1;
     }
-  
+
     to {
-      transform: scale(1.8);
-      opacity: 0;
+        transform: scale(1.8);
+        opacity: 0;
     }
-  }
+}
+
+/* ===========================
+   RESPONSIVE DESIGN
+   =========================== */
+@media (max-width: 768px) {
+    .register-page_flex {
+        flex-direction: column;
+        gap: 0;
+    }
+}
+
+@media (max-width: 480px) {
+    .register-page_form {
+        padding: 20px 15px;
+        margin: 10px;
+    }
+
+    .register-page_title {
+        font-size: 24px;
+    }
+}
