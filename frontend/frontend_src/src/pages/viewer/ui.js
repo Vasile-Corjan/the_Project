@@ -1,6 +1,8 @@
+import * as THREE from "three";
 import * as OBC from "@thatopen/components";
 import * as WEBIFC from "web-ifc";
 import { authenticatedFetch } from "../../api.js";
+import { ViewHelper } from 'three/addons/helpers/ViewHelper.js';
 
 // Shared variables for panels
 let treePanel = null;
@@ -830,3 +832,45 @@ export async function crumbleMenu() {
     parent.appendChild(separator);
   }
 }
+
+export function setupViewHelper(world) {
+  const camera = world.camera.three;
+  const renderer = world.renderer.three;
+  const controls = world.camera.controls;
+
+  renderer.autoClear = false;
+
+  const viewHelper = new ViewHelper(camera, renderer.domElement);
+  viewHelper.controls = controls;
+
+  viewHelper.setLabels('X', 'Y', 'Z');
+
+
+  const clock = new THREE.Clock();
+
+  renderer.domElement.addEventListener('pointerup', (e) => {
+	const wasViewHelperClick = viewHelper.handleClick(e);
+	if (wasViewHelperClick) {
+		controls.enabled = false;
+	}
+  });
+  function renderViewHelper() {
+    requestAnimationFrame(renderViewHelper);
+
+    const delta = clock.getDelta();
+
+    if (viewHelper.animating) {
+      viewHelper.update(delta);
+      if (!viewHelper.animating) {
+        controls.enabled = true;
+      }
+    }
+
+    renderer.autoClear = false;
+    viewHelper.render(renderer);
+  }
+
+  renderViewHelper();
+
+}
+

@@ -16,6 +16,7 @@ import {
   state,
   createSelectionInfoPanel,
   crumbleMenu,
+  setupViewHelper
 } from "./ui.js";
 
 // Local functions upload
@@ -95,6 +96,7 @@ components.init();
 world.camera.controls.setLookAt(10, 10, 10, 0, 0, 0);
 world.scene.setup();
 
+setupViewHelper(world)
 container.addEventListener("resize", () => {
   rendererComponent.resize();
   cameraComponent.updateAspect();
