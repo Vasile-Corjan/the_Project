@@ -424,16 +424,15 @@ window.onkeydown = (event) => {
 // RESET CAMERA
 
 function resetCamerPosition() {
-
-  const loadedModels = getLoadedModels().map(model =>
+  console.log(fragments.list)
+/*   const loadedModels = getLoadedModels().map(model =>
     fragments.groups.get(model.modelId)
   ).filter(Boolean);
-
   if(loadedModels.length > 0){
     world.camera.fit(loadedModels, true)
   } else {
     world.camera.controls.setLookAt(10, 10, 10, 0, 0, 0, true)
-  }
+  } */
 }
 
 const homeButton = document.querySelector('.home');

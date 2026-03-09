@@ -2,7 +2,7 @@ import { authenticatedFetch } from "../../api";
 
 export async function Viewer() {
   try {
-    const response = await authenticatedFetch("/src/pages/viewer/index.html");
+    const response = await authenticatedFetch("/src/pages/viewer/viewer.html");
     const html = await response.text();
     
     

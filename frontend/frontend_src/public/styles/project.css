@@ -4,6 +4,7 @@
   --header-height: 60px;
   --primary-color: #007bff;
   --background-color: #f6f8fa;
+  --nordic-background-color: #4c566a;
   --sidebar-bg-color: #2d333b;
   --sidebar-text-color: #c9d1d9;
   --card-bg-color: #ffffff;
@@ -238,6 +239,11 @@ body {
 
 /* MAIN SECTION */
 
+main {
+  background-color: var(--nordic-background-color); /* #f6f8fa */
+  min-height: calc(100vh - var(--header-height));
+  padding: 0;
+}
 .project-tree{
   display: flex;
   position: relative;
@@ -252,13 +258,15 @@ body {
   border: 1px solid #d0d7de;
   border-radius: 6px;
 }
+
 .files-table {
   width: 100%;
   border-collapse: collapse;
   table-layout: fixed;
 }
+
 .files-table th {
-  text-align: left;
+  text-align: center;
   padding: 8px 16px;
   font-size: 12px;
   color: #57606a;
@@ -266,46 +274,69 @@ body {
   background-color: #f6f8fa;
   border-bottom: 1px solid #d0d7de;
 }
-.filename-header {
-  width: 40%;
-}
-.message-header {
-  width: 40%;
-}
+
+
+
+.filename-header,
+.message-header,
 .time-header {
-  width: 20%;
+  width: auto;
+  white-space: nowrap;
 }
+
 .file-row {
   border-bottom: 1px solid #d0d7de;
   height: 40px;
+  transition: background-color 0.1s ease;
 }
+
+.file-row:last-child {
+  border-bottom: none;
+}
+
 .file-row:hover {
   background-color: #f6f8fa;
 }
+
 .file-name {
   padding: 8px 16px;
   display: flex;
   align-items: center;
+  gap: 4px;
+  overflow: hidden;
+}
+
+.file-name svg {
+  flex-shrink: 0;
+  color: #57606a;
 }
 
 .file-name a {
   text-decoration: none;
-  color: black;
-}
-
-.change-time, .update-time {
-  padding: 8px 16px;
+  color: #0969da;
   font-size: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 500;
 }
 
-.update-time {
+.file-name a:hover {
+  text-decoration: underline;
+}
+.update-time,
+.action-header,
+.change-time {
+  padding: 8px 16px;
+  font-size: 12px;
+  color: #57606a;
+  text-align: center;
+}
+
+.delete-action {
+  padding: 8px 16px;
   display: flex;
-  justify-content: flex-start;
-  flex-direction: column;
-  position: relative;
+  justify-content: center;
 }
 
 .description-block {
@@ -475,6 +506,7 @@ body {
 
 .profile-actions {
   display: flex;
+  justify-content: center;
   gap: 1rem;
   margin: auto;
 }
@@ -494,39 +526,43 @@ body {
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
-  .project-files,
-  .description-block {
-    margin: 20px 10px;
-    max-width: calc(100% - 20px);
-  }
-  
-  .description-block {
-    padding: 20px;
-  }
-  
-  .settings-panel {
-    width: 95%;
-    max-height: 95vh;
-  }
-}
-
-@media (max-width: 480px) {
-  .appHeader-bar {
-    padding: 0.75rem;
-    flex-wrap: wrap;
-  }
-  
-  .project-files,
-  .description-block {
-    margin: 10px 5px;
-    max-width: calc(100% - 10px);
-  }
-  
   .files-table th,
   .file-name,
   .change-time,
   .update-time {
+    padding: 6px 12px;
+  }
+  
+  .filename-header {
+    width: 50%;
+  }
+  
+  .message-header {
+    display: none;
+  }
+  
+  .file-row .update-time {
+    display: none;
+  }
+  
+  .time-header {
+    width: 50%;
+  }
+}
+
+@media (max-width: 480px) {
+  .file-name {
     padding: 6px 10px;
     font-size: 13px;
+  }
+  
+  .file-name svg {
+    width: 14px;
+    height: 14px;
+  }
+  
+  .change-time {
+    padding: 6px 10px;
+    font-size: 11px;
   }
 }

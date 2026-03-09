@@ -832,6 +832,7 @@ export async function crumbleMenu() {
     parent.appendChild(separator);
   }
 }
+// GIZMO
 
 export function setupViewHelper(world) {
   const camera = world.camera.three;
@@ -844,7 +845,6 @@ export function setupViewHelper(world) {
   viewHelper.controls = controls;
 
   viewHelper.setLabels('X', 'Y', 'Z');
-
 
   const clock = new THREE.Clock();
 
