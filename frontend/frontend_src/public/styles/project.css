@@ -19,7 +19,7 @@
 
 body {
   font-family: Arial, sans-serif;
-  background-color: #eceff0;
+  background-color: #4c566a;
   min-height: 100vh;
   overflow-x: hidden;
 }
@@ -244,10 +244,42 @@ main {
   min-height: calc(100vh - var(--header-height));
   padding: 0;
 }
-.project-tree{
+.project-section{
+  display:flex;
+  padding-top: 20px;
+  padding-bottom: 20px
+}
+
+.project-container{
   display: flex;
   position: relative;
   padding-top: 20px;
+  margin:auto;
+  flex-direction:column;
+}
+
+.project-name-container {
+	display: flex;
+	border-bottom: 1px solid black;
+	margin-bottom: 10px;
+	gap: 1rem;
+}
+.project-name-container > strong {
+	padding: 10px;
+}
+
+.uploadButton {
+	display: flex;
+	justify-content: flex-end;
+}
+
+.uploadButton > button {
+	padding: 0.4rem 0.75rem;
+	border: none;
+	border-radius: 4px;
+	cursor: pointer;
+	background-color: #007bff;
+	color: white;
 }
 
 .project-files {
