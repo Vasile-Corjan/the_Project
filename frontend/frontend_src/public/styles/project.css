@@ -3,7 +3,7 @@
   --sidebar-width: 256px;
   --header-height: 60px;
   --primary-color: #007bff;
-  --background-color: #f6f8fa;
+  --background-color: #d0d7de;
   --nordic-background-color: #4c566a;
   --sidebar-bg-color: #2d333b;
   --sidebar-text-color: #c9d1d9;
@@ -201,10 +201,9 @@ body {
 /*PROJECT PAGE NAB-BAR*/
 .project-navbar {
   padding: 0 1rem;
-  border-bottom: 2px solid gray;
   position: relative;
   z-index: 50;
-  background-color: white;
+  background-color: #d0d7de;
 }
 
 .navbar {
@@ -267,19 +266,23 @@ main {
 .project-name-container > strong {
 	padding: 10px;
 }
-
-.uploadButton {
-	display: flex;
-	justify-content: flex-end;
+.profile-actions {
+  display: flex;
+  justify-content: right;
+  gap: 1rem;
 }
 
-.uploadButton > button {
-	padding: 0.4rem 0.75rem;
-	border: none;
-	border-radius: 4px;
-	cursor: pointer;
-	background-color: #007bff;
-	color: white;
+.profile-actions button {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  background-color: #007bff;
+  color: white;
+}
+
+.profile-actions button:hover {
+  background-color: #0056b3;
 }
 
 .project-files {
@@ -303,7 +306,7 @@ main {
   font-size: 12px;
   color: #57606a;
   font-weight: 600;
-  background-color: #f6f8fa;
+  background-color: #d0d7de;
   border-bottom: 1px solid #d0d7de;
 }
 
@@ -375,7 +378,7 @@ main {
   width: 100%;
   max-width: 900px;
   margin: 20px auto;
-  background: white;
+  background: #d0d7de;
   border: 1px solid #d0d7de;
   border-radius: 6px;
   padding: 32px;
@@ -535,26 +538,6 @@ main {
   font-size: 14px;
 }
 /* TO HERE */
-
-.profile-actions {
-  display: flex;
-  justify-content: center;
-  gap: 1rem;
-  margin: auto;
-}
-
-.profile-actions button {
-  padding: 0.5rem 1rem;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  background-color: #007bff;
-  color: white;
-}
-
-.profile-actions button:hover {
-  background-color: #0056b3;
-}
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
