@@ -23,8 +23,6 @@ import {
 import { authenticatedFetch } from "../../api.js";
 import { LineMaterial } from "three/examples/jsm/Addons.js";
 
-
-
 //URLParameters
 const urlParams = new URLSearchParams(window.location.search);
 const projectId = urlParams.get('projectId');
@@ -159,18 +157,20 @@ highlighter.setup({world,
   }
 }); // change the hover color and edit other settings
 highlighter.multiple = "ctrlKey";
-highlighter.zoomFactor = 1;
-highlighter.zoomToSelection = true;
+highlighter.zoomFactor = 0.5;
 world.camera.controls.smoothTime = 0.3;
+highlighter.zoomToSelection = true;
+
 
 // IFC Loader
 const ifcLoader = components.get(OBC.IfcLoader);
+
 
 await ifcLoader.setup({
   autoSetWasm: false,
   wasm:{
     path: '/wasm/',
-    absolute: false
+    absolute: true
   }
 });
 
@@ -178,7 +178,6 @@ let path = './worker.mjs';
 const workerUrl = new URL(path, import.meta.url).href;
 const fragments = components.get(OBC.FragmentsManager);
 fragments.init(workerUrl);
-//ifcLoader.fragments = fragments
 
 world.camera.controls.addEventListener("rest", () =>
   fragments.core.update(false),
@@ -190,7 +189,7 @@ async function loadIfcFromDatabase(projectId, fileId) {
   const buffer = await file.arrayBuffer();
   const data = new Uint8Array(buffer);
   const model = await ifcLoader.load(data, true, fileName);
-  
+  return model
   //model.name = fileName;
   //world.scene.three.add(model);
 }
@@ -220,7 +219,6 @@ fragments.list.onItemSet.add(({value: model}) => {
   model.graphicsQuality = 1;
   model.useCamera(world.camera.three);
   world.scene.three.add(model.object);
-  
   fragments.core.update(true);
 });
 
@@ -240,59 +238,30 @@ crumbleMenu().catch(error => {
 });
 
 
-// CREATING BOUNDINGBOX
-const fragmentBox = components.get(OBC.BoundingBoxer);
+// Setting the GRID position to the base level
+fragments.core.onModelLoaded.add(async (model) => {
+  const datas = await getBaseElevation(model)
+  grid.three.position.y = datas
+});
 
-const getLoadedModelsBoundings = (model) => {
-  // As a good practice, always clean up the boxer list first
-  // so no previous boxes added are taken into account
-  fragmentBox.list.clear();
-  
-  fragmentBox.addFromModels(model.modelId);
-  // This computes the merged box of the list.
-  const box = fragmentBox.get();
-  // As a good practice, always clean up the boxer list after the calculation
-  fragmentBox.list.clear();
-  return box;
-};
-
-const getBaseElevation = async (model) => {
-  const storeys = await model.getItemsOfCategories([/BUILDINGSTOREY/]);  
+async function getBaseElevation(model) {
+  const storeys = await model.getItemsOfCategories([/BUILDINGSTOREY/]);
   const localIds = Object.values(storeys).flat();
-  const data = await model.getItemsData(localIds);
-  
-  // Find the first storey with elevation 0
-  const baseStorey = data.find(d => d.Elevation?.value === 0);
-  
-  // If found, return its elevation, otherwise return null or default value
-  return baseStorey ? baseStorey.Elevation.value : null;
+  const data = await  model.getItemsData(localIds)
+  const storey = data.find((attributes) => {
+    if(!("Name" in attributes && "value" in attributes.Name)) return false;
+    return attributes.Name.value;
+  });
+  if (!storey) return 0;
+  if (!("Elevation" in storey && "value" in storey.Elevation)) return 0;
+  const [, coordHeight] = await model.getCoordinates();
+  return storey.Elevation.value + coordHeight
 };
 
-
-/* const loadedModels = getLoadedModels().map(model =>
-    fragments.groups.get(model.modelId)
-  ).filter(Boolean);
-
-if(loadedModels.length > 0){
-  loadedModels.forEach(model => {
-    fragmentBox.add(model)
-    const bbox = fragmentBox.get();
-    console.log(bbox)
-    if (!initialGridPositionSet) {
-      initialGridPositionY = bbox.min.y;
-      grid.three.position.y = initialGridPositionY;
-      initialGridPositionSet = true;
-    } else {
-      grid.three.position.y = initialGridPositionY;
-    }
-    fragmentBox.reset();
-  })
-} */
 
 // CLIPPER
 const clipper = components.get(OBC.Clipper);
 const clipperColor = new THREE.Color("#FBF0C3");
-
 
 // CliperStyle
 const clipStyler = components.get(OBCF.ClipStyler)
@@ -340,6 +309,8 @@ container.ondblclick = () =>{
     };
   };
 };
+
+
 // MEASURING DISTANCE
 const dimensions = components.get(OBCF.LengthMeasurement);
 dimensions.world = world;
@@ -347,6 +318,14 @@ dimensions.world = world;
 dimensions.units = "mm";
 dimensions.rounding = 0;
 dimensions.snappings = [FRAGS.SnappingClass.POINT]
+dimensions.snapDistance = 0.5;
+
+
+const dimColor = new THREE.Color("green");
+dimensions.color = dimColor;
+
+dimensions.linesEndpointElement.style.width = "144px";
+dimensions.linesEndpointElement.style.height = "144px";
 
 
 document.getElementById("dim").addEventListener('click', () =>{
@@ -358,11 +337,6 @@ document.getElementById("dim").addEventListener('click', () =>{
       const result = caster.castRay(fragments.meshes)
       if (!world.camera.controls.active && result !== null) {
         dimensions.create();
-        dimensions.snapDistance = 0.5;
-        
-        dimensions.linesEndpointElement.color = 'green'
-        const dimColor = new THREE.Color("green");
-        dimensions.color = dimColor;
         
         // Handle keyboard actions while creating dimensions
         const handleKeyDown = (event) => {
@@ -424,15 +398,13 @@ window.onkeydown = (event) => {
 // RESET CAMERA
 
 function resetCamerPosition() {
-  console.log(fragments.list)
-/*   const loadedModels = getLoadedModels().map(model =>
-    fragments.groups.get(model.modelId)
-  ).filter(Boolean);
+  const loadedModels = fragments.list
+
   if(loadedModels.length > 0){
     world.camera.fit(loadedModels, true)
   } else {
     world.camera.controls.setLookAt(10, 10, 10, 0, 0, 0, true)
-  } */
+  }
 }
 
 const homeButton = document.querySelector('.home');

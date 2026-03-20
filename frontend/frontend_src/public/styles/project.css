@@ -263,9 +263,12 @@ main {
 	margin-bottom: 10px;
 	gap: 1rem;
 }
-.project-name-container > strong {
+.project-name-link > strong {
 	padding: 10px;
+  font-size: 24px;
 }
+
+
 .profile-actions {
   display: flex;
   justify-content: right;

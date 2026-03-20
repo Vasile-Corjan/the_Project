@@ -163,7 +163,7 @@ export function updateDataPanel(dataPanel, components, fragments) {
 }
 
 // Export the models array to allow access from other files if needed
-export const getLoadedModels = () => [...loadedModels];
+export const getLoadedModels = () => loadedModels;
 
 
 // Integrated getModelTree function

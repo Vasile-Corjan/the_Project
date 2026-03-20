@@ -27,6 +27,7 @@ export async function Project() {
   }
 }
 
+// FUNCTION TO LOAD THE PROJECT DATA
 async function loadProjectData(projectId) {
   const response = await authenticatedFetch(`http://localhost:8000/api/projects/${projectId}/`)
 
@@ -46,6 +47,8 @@ function updateProjectDescription(projectName, projectDescription) {
     
     // Add project name as title
     const blockName = document.createElement('h1');
+    const projectNameLink = document.querySelector('.project-name-link');
+    projectNameLink.querySelector('strong').textContent = projectName;
     blockName.textContent = projectName;
     descriptionBlock.insertAdjacentElement('afterbegin', blockName);
 
@@ -255,6 +258,7 @@ function setupDeleteButton(projectId, projectName) {
   }
 }
 
+// FUNCTION TO UPLOAD A FILE
 function uploadFile(){
   const uploadButton = document.querySelector('.uploadButton');
   const urlParams = new URLSearchParams(window.location.search);
@@ -305,6 +309,7 @@ function uploadFile(){
   }
 }
 
+// FUNCTION TO DELETE A FILE
 async function deleteFile(projectId, fileId){
   const response = await authenticatedFetch(`http://localhost:8000/api/projects/${projectId}/files/${fileId}/`,
     {method: 'DELETE'}
