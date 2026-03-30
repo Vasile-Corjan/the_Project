@@ -147,8 +147,6 @@ caster.enabled = true
 
 const highlighter = components.get(OBCF.Highlighter);
 highlighter.setup({world, 
-  //hoverColor:new THREE.Color("#F5DB69"),
-  //selectEnabled:true, 
   selectMaterialDefinition:{
     color: new THREE.Color("#F59716"),
     opacity: 1,
@@ -161,10 +159,19 @@ highlighter.zoomFactor = 0.5;
 world.camera.controls.smoothTime = 0.3;
 highlighter.zoomToSelection = true;
 
+// HOVERER
+const hoverer = components.get(OBCF.Hoverer);
+hoverer.world = world;
+hoverer.enabled = true;
+hoverer.material = new THREE.MeshBasicMaterial({
+  color: new THREE.Color("#F9B24D"),
+  transparent: true,
+  opacity: 0.5,
+  depthTest: false,
+})
 
 // IFC Loader
 const ifcLoader = components.get(OBC.IfcLoader);
-
 
 await ifcLoader.setup({
   autoSetWasm: false,
@@ -394,6 +401,10 @@ window.onkeydown = (event) => {
     dimensions.cancelCreation();
   };
 };
+
+
+
+
 
 // RESET CAMERA
 
