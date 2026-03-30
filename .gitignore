@@ -31,3 +31,6 @@ dist-ssr
 .env
 myenv
 env
+
+# Personal files
+todolist.md
