@@ -11,6 +11,57 @@ let eventListenerAddedTree = false;
 let eventListenerAddedModels = false;
 const loadedModels = [];
 
+// Unit conversion cache and symbols
+const modelUnitsCache = {};
+
+const unitSymbols = {
+  "METRE": "m",
+  "SQUARE_METRE": "m²",
+  "CUBIC_METRE": "m³",
+};
+
+const prefixSymbols = {
+  "MILLI": "mm",
+  "CENTI": "cm",
+  "KILO": "km",
+};
+
+// Conversion factors FROM meters TO the target unit
+const prefixFactors = {
+  "MILLI": 1000,
+  "CENTI": 100,
+  "KILO": 0.001,
+};
+
+function getUnitSymbol(unit) {
+  const name = unit.Name?.value;
+  const prefix = unit.Prefix?.value;
+  if (prefix && prefixSymbols[prefix]) return prefixSymbols[prefix];
+  if (prefix && name) return `${prefix.toLowerCase()}${unitSymbols[name] ?? name.toLowerCase()}`;
+  return unitSymbols[name] ?? name ?? "";
+}
+
+function getUnitFactor(unit) {
+  const prefix = unit.Prefix?.value;
+  return prefixFactors[prefix] ?? 1;
+}
+
+async function getModelUnits(components, modelId) {
+  if (modelUnitsCache[modelId]) return modelUnitsCache[modelId];
+  const fragments = components.get(OBC.FragmentsManager);
+  const model = fragments.list.get(modelId);
+  if (!model) return [];
+  const categories = await model.getItemsOfCategories([/UNITASSIGNMENT/]);
+  const [unitAssignment] = Object.values(categories).flat();
+  if (unitAssignment == null) return [];
+  const [unitAssignmentsData] = await model.getItemsData([unitAssignment], {
+    relations: { Units: { relations: false, attributes: true } },
+  });
+  if (!Array.isArray(unitAssignmentsData.Units)) return [];
+  modelUnitsCache[modelId] = unitAssignmentsData.Units;
+  return unitAssignmentsData.Units;
+}
+
 // Add a flag to track if we need to update multiple models
 let treeModels = [];
 
@@ -499,6 +550,7 @@ const getItemRow = (modelId, propertyData, state) => {
         name?.toString().length > 0
         ? name.toString()
         : category ?? String(localId),
+      modelId,
     },
   };
   
@@ -560,7 +612,7 @@ export async function computeTableRow (components, modelIdMap, state){
 };
 
 // Create the UI panel 
-export function createSelectionInfoPanel(state, propertiesRows) {
+export async function createSelectionInfoPanel(state, propertiesRows, components) {
   const theContainer = document.querySelector(".selection-nav");
   theContainer.innerHTML = '';
   
@@ -582,7 +634,7 @@ export function createSelectionInfoPanel(state, propertiesRows) {
   renderStandardAttributes(element.children, selectionPanel);
   
   // Then render property and quantity sets
-  renderPropertyAndQuantitySets(element.children, selectionPanel);
+  await renderPropertyAndQuantitySets(element.children, selectionPanel, components, element.data?.modelId);
 }
 
 function createPanelElement() {
@@ -673,7 +725,7 @@ function renderStandardAttributes(attributesRows, parentElement) {
   });
 }
 
-function renderPropertyAndQuantitySets(attributesRows, parentElement) {
+async function renderPropertyAndQuantitySets(attributesRows, parentElement, components, modelId) {
   // Find relevant property/quantity sets
   const relevantRows = attributesRows.filter(row => 
     row.data && 
@@ -684,6 +736,15 @@ function renderPropertyAndQuantitySets(attributesRows, parentElement) {
   
   // If none found, exit early
   if (relevantRows.length === 0) return;
+
+  // Pre-fetch model units for Elevation conversion
+  let lengthUnit = null;
+  if (components && modelId) {
+    const units = await getModelUnits(components, modelId);
+    lengthUnit = units.find(unit => 
+      unit.UnitType && "value" in unit.UnitType && unit.UnitType.value === "LENGTHUNIT"
+    );
+  }
   
   // Process each relevant attribute row
   relevantRows.forEach(attributesRow => {
@@ -742,7 +803,13 @@ function renderPropertyAndQuantitySets(attributesRows, parentElement) {
         // Direct property handling
         set.children.forEach(prop => {
           if (prop.data?.Name) {
-            setContent.appendChild(createPropertyRow(prop.data.Name, prop.data.Value));
+            let displayValue = prop.data.Value;
+            if (prop.data.Name === "Elevation" && lengthUnit) {
+              const symbol = getUnitSymbol(lengthUnit);
+              const factor = getUnitFactor(lengthUnit);
+              displayValue = `${(Number(displayValue) * factor).toFixed(2)} ${symbol}`;
+            }
+            setContent.appendChild(createPropertyRow(prop.data.Name, displayValue));
           }
         });
       } else {

@@ -157,7 +157,7 @@ highlighter.setup({world,
 highlighter.multiple = "ctrlKey";
 highlighter.zoomFactor = 0.5;
 world.camera.controls.smoothTime = 0.3;
-highlighter.zoomToSelection = true;
+highlighter.zoomToSelection = false;
 
 // HOVERER
 const hoverer = components.get(OBCF.Hoverer);
@@ -172,13 +172,15 @@ hoverer.material = new THREE.MeshBasicMaterial({
 
 // IFC Loader
 const ifcLoader = components.get(OBC.IfcLoader);
-
 await ifcLoader.setup({
   autoSetWasm: false,
-  wasm:{
+  wasm: {
     path: '/wasm/',
-    absolute: true
-  }
+    absolute: true,
+  },
+  webIfc: {
+    COORDINATE_TO_ORIGIN: true,
+  },
 });
 
 let path = './worker.mjs';
@@ -190,15 +192,13 @@ world.camera.controls.addEventListener("rest", () =>
   fragments.core.update(false),
 );
 
-// Funciton to load IFC file from the DB
+// Function to load IFC file from the DB
 async function loadIfcFromDatabase(projectId, fileId) {
   const file = await authenticatedFetch(`http://localhost:8000/api/projects/${projectId}/files/${fileId}/`);
   const buffer = await file.arrayBuffer();
   const data = new Uint8Array(buffer);
   const model = await ifcLoader.load(data, true, fileName);
-  return model
-  //model.name = fileName;
-  //world.scene.three.add(model);
+  return model;
 }
 
 // Function to load IFC file from array buffer
@@ -215,7 +215,6 @@ const handleFileUpload = async () => {
     const data = new Uint8Array(buffer);
     const model = await ifcLoader.load(data, true, fileName);
     model.name = fileName;
-    //model.setLodMode(FRAGS.LodMode.ALL_GEOMETRY);
   };
   fileOpener.click();
 }
@@ -254,7 +253,8 @@ fragments.core.onModelLoaded.add(async (model) => {
 async function getBaseElevation(model) {
   const storeys = await model.getItemsOfCategories([/BUILDINGSTOREY/]);
   const localIds = Object.values(storeys).flat();
-  const data = await  model.getItemsData(localIds)
+  const data = await  model.getItemsData(localIds);
+  console.log(data)
   const storey = data.find((attributes) => {
     if(!("Name" in attributes && "value" in attributes.Name)) return false;
     return attributes.Name.value;
@@ -286,125 +286,150 @@ clipper.list.onItemSet.add(({key}) => {
 });
 
 document.getElementById('clip').addEventListener('click', () => {
-  clipper.enabled = true;  
+  const openClipMenu = document.getElementById("clip-menu");
+  
+  if (openClipMenu) {
+    openClipMenu.remove();
+    clipper.enabled = false;
+    container.ondblclick = null;
+    return;
+  };
+
+  if (!document.getElementById("clip-menu")) {
+    const clipMenu = document.createElement("div");
+    clipMenu.id = "clip-menu";
+    
+    const createClipBtn = document.createElement('button');
+    createClipBtn.id = "create-clip-plane";
+    createClipBtn.textContent = "Create Section Plane";
+
+    const deleteBtn = document.createElement('button');
+    deleteBtn.id = "delete-clip-plane";
+    deleteBtn.textContent = "Delete Section Plane";
+
+    clipMenu.appendChild(createClipBtn);
+    clipMenu.appendChild(deleteBtn);
+    document.querySelector(".bottom-menu").appendChild(clipMenu);
+
+    const updateDeleteBtn = () => {
+      deleteBtn.disabled = clipper.list.size === 0;
+    };
+    updateDeleteBtn();
+
+    clipper.list.onItemSet.add(updateDeleteBtn);
+
+    createClipBtn.addEventListener('click', () => {
+      clipper.enabled = true;
+      container.ondblclick = () =>{
+        if(clipper.enabled){
+          clipper.create(world);
+          clipper.visible = true;
+          clipper.config.size = 10;
+          clipper.config.color = clipperColor;
+        };
+      };
+    });
+
+    deleteBtn.addEventListener("click", () => {
+      for(const [planeId] of clipper.list.entries()){
+        clipper.delete(world, planeId);
+      };
+        clipper.enabled = false;
+        updateDeleteBtn();
+        clipMenu.remove();
+        container.ondblclick = null;
+    });
+  };
 });
 
-container.ondblclick = () =>{
-  if(clipper.enabled){
-    clipper.create(world);
-    clipper.visible = true;
-    clipper.config.size = 10;
-    clipper.config.color = clipperColor;
-    
-    if (clipper.list.size >= 0 && !document.getElementById("deleting-clip-plane")) {
-      const deleteClipButton = document.createElement("button"); 
-      deleteClipButton.id = "deleting-clip-plane";
-      deleteClipButton.textContent = "Delete Clipping Plane";
-      document.getElementById("container").appendChild(deleteClipButton);
-
-      deleteClipButton.addEventListener("click", () => {
-        if(clipper.list.size >= 0){
-          for(const [planeId] of clipper.list.entries()){
-            clipper.delete(world, planeId);
-          };
-        }
-        if (clipper.list.size === 0) {
-          clipper.enabled = false;
-        }
-        document.getElementById("container").removeChild(deleteClipButton)
-      });
-    };
-  };
-};
-
-
-// MEASURING DISTANCE
 const dimensions = components.get(OBCF.LengthMeasurement);
 dimensions.world = world;
-//dimensions.enabled = false;
 dimensions.units = "mm";
 dimensions.rounding = 0;
-dimensions.snappings = [FRAGS.SnappingClass.POINT]
+dimensions.snappings = [FRAGS.SnappingClass.POINT];
 dimensions.snapDistance = 0.5;
-
 
 const dimColor = new THREE.Color("green");
 dimensions.color = dimColor;
 
-dimensions.linesEndpointElement.style.width = "144px";
-dimensions.linesEndpointElement.style.height = "144px";
+document.getElementById('dim').addEventListener('click', () => {
+  const dimMenu = document.getElementById('dim-menu');
 
-
-document.getElementById("dim").addEventListener('click', () =>{
-  dimensions.enabled = true;
-  highlighter.clear()
-  if (dimensions.enabled){
-    highlighter.enabled = false;
-    container.onclick = () => {
-      const result = caster.castRay(fragments.meshes)
-      if (!world.camera.controls.active && result !== null) {
-        dimensions.create();
-        
-        // Handle keyboard actions while creating dimensions
-        const handleKeyDown = (event) => {
-          if (event.code === "Escape") {
-            dimensions.endCreation();
-            dimensions.enabled = false;
-            window.removeEventListener("keydown", handleKeyDown);
-            highlighter.enabled = true;
-          } else if (event.code === "Delete") {
-            dimensions.delete();
-          }
-        };
-        window.addEventListener("keydown", handleKeyDown);
-      
-        // Delete all created dimesions by clicking the button "Delete All Dimensions"
-        if (dimensions.list.size > 0 && !document.getElementById("deleting-dimensions")) {
-          const deleteDimension = document.createElement("button");
-          deleteDimension.id = "deleting-dimensions";
-          deleteDimension.textContent = "Delete All Dimensions";
-          document.getElementById("container").appendChild(deleteDimension);
-          
-          deleteDimension.addEventListener("click", () => {
-            dimensions.list.clear(); 
-            if (dimensions.list.size === 0) {
-              dimensions.enabled = false;
-              window.removeEventListener("keydown", handleKeyDown);
-            }
-            document.getElementById("container").removeChild(deleteDimension);
-            highlighter.enabled = true;
-          });
-        };
-      }
-    };
+  if (dimMenu) {
+    dimMenu.remove();
+    dimensions.enabled = false;
+    container.onclick = null;
+    return;
   }
-});
 
-highlighter.events.select.onHighlight.add(async (modelIdMap) => {
-  if(modelIdMap && !clipper.enabled){
-    const test = true;
-    const properties = await computeTableRow(components, modelIdMap, state);
-    createSelectionInfoPanel(test, properties)
-  } 
-}); 
+  if (!document.getElementById('dim-menu')) {
+    const dimMenu = document.createElement('div');
+    dimMenu.id = 'dim-menu';
 
-// Clear the selection
-highlighter.events.select.onClear.add((modelIdMap) => {
-  createSelectionInfoPanel(false)
-  computeTableRow(components, modelIdMap, state)
+    const createDimBtn = document.createElement('button');
+    createDimBtn.id = 'create-dimension';
+    createDimBtn.textContent = 'Create Dimension';
+
+    const deleteDimBtn = document.createElement('button');
+    deleteDimBtn.id = 'delete-dimension';
+    deleteDimBtn.textContent = 'Delete Dimensions';
+
+    dimMenu.appendChild(createDimBtn);
+    dimMenu.appendChild(deleteDimBtn);
+    document.querySelector('.bottom-menu').appendChild(dimMenu);
+
+    const updateDeleteBtn = () => {
+      deleteDimBtn.disabled = dimensions.list.size === 0;
+    }
+    updateDeleteBtn();
+
+    createDimBtn.addEventListener('click', () => {
+      dimensions.enabled = true;
+      hoverer.enabled = false;
+      highlighter.enabled = false;
+      highlighter.clear();
+      container.onclick = () => {
+        dimensions.create();
+      };
+    });
+
+    dimensions.list.onItemAdded.add(updateDeleteBtn);
+
+    deleteDimBtn.addEventListener('click', () => {
+      dimensions.list.clear();
+      dimensions.enabled = false;
+      updateDeleteBtn();
+      dimMenu.remove();
+      container.onclick = null;
+      highlighter.enabled = true;
+      hoverer.enabled = true;
+    });
+  }
 })
 
 
 // END DIMENSIONS CREATION
 window.onkeydown = (event) => {
   if (event.code === "Escape") {
-    dimensions.cancelCreation();
+    //dimensions.endCreation();
+    dimensions.enabled = false;
   };
 };
 
 
+highlighter.events.select.onHighlight.add(async (modelIdMap) => {
+  if(modelIdMap && !clipper.enabled){
+    const test = true;
+    const properties = await computeTableRow(components, modelIdMap, state);
+    createSelectionInfoPanel(test, properties, components)
+  } 
+}); 
 
-
+// Clear the selection
+highlighter.events.select.onClear.add((modelIdMap) => {
+  createSelectionInfoPanel(false, null, components)
+  computeTableRow(components, modelIdMap, state)
+})
 
 // RESET CAMERA
 

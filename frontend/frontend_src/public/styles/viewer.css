@@ -406,17 +406,38 @@ li > button {
   top: 80px;
 }
 
-#deleting-clip-plane{
-  position: fixed;
-  bottom: 50px;
-  right: 50px;
-  z-index: 102; 
+#clip-menu{
+  position: absolute;
+  bottom: calc(100% + 5px);
+  right: 10%;
+  display: flex;
+  gap: 8px;
+  padding: 8px;
+  background: rgba(0, 0, 0, 0.9);
+  border-radius: 10px;
+  z-index: 20;
+  flex-direction: column;
 }
 
-#deleting-dimensions{
-  position:fixed;
-  bottom: 50px;
-  right: 50px;
+#dim-menu{
+  position: absolute;
+  bottom: calc(100% + 5px);
+  right: -70px;
+  display: flex;
+  gap: 8px;
+  padding: 8px;
+  background: rgba(0, 0, 0, 0.9);
+  border-radius: 10px;
+  z-index: 20;
+  flex-direction: column;
+}
+
+
+
+#clip-menu button, #dim-menu button{
+  border: none;
+  border-radius: 8px;
+  padding: 6px 12px;
 }
 
 .model-entry{
