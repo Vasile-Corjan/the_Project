@@ -17,6 +17,7 @@ export async function Project() {
       settingsTab();
       initializeUserDropdown();
       uploadFile();
+      federatedModel();
       
       const projectData = await loadProjectData(projectId);
       updateProjectDescription(projectData.name, projectData.description);
@@ -308,7 +309,6 @@ function uploadFile(){
     })
   }
 }
-
 // FUNCTION TO DELETE A FILE
 async function deleteFile(projectId, fileId){
   const response = await authenticatedFetch(`http://localhost:8000/api/projects/${projectId}/files/${fileId}/`,
@@ -386,6 +386,18 @@ async function  refreshFilesList(projectId){
   }
 }
 
-export default Project;
+// filedid 28 and 27
+function federatedModel(){
+  const goToViewerBtn = document.querySelector('.go-to-viewer');
+  const urlParams = new URLSearchParams(window.location.search);
+  const projectId = urlParams.get('id');
 
+  if(goToViewerBtn){
+    goToViewerBtn.addEventListener('click', () => {
+      window.location.href = `/viewer?projectId=${projectId}/&fileId=28`;
+    });
+  }
+}
+
+export default Project;
 

@@ -6,7 +6,6 @@ import * as FRAGS from "@thatopen/fragments";
 import * as BUI from "@thatopen/ui";
 //import * as CUI from "@thatopen/ui-obc";
 import * as WEBIFC from "web-ifc";
-
 // Import UI functions
 import { 
   initializePanels, 
@@ -28,6 +27,7 @@ const urlParams = new URLSearchParams(window.location.search);
 const projectId = urlParams.get('projectId');
 const fileId = urlParams.get('fileId');
 const fileName = urlParams.get('fileName');
+const fileIdsParam = urlParams.get('fileIds');
 
 
 //BUI.Manager.init();
@@ -193,11 +193,11 @@ world.camera.controls.addEventListener("rest", () =>
 );
 
 // Function to load IFC file from the DB
-async function loadIfcFromDatabase(projectId, fileId) {
+async function loadIfcFromDatabase(projectId, fileId, modelName) {
   const file = await authenticatedFetch(`http://localhost:8000/api/projects/${projectId}/files/${fileId}/`);
   const buffer = await file.arrayBuffer();
   const data = new Uint8Array(buffer);
-  const model = await ifcLoader.load(data, true, fileName);
+  const model = await ifcLoader.load(data, true, modelName || fileName || `model_${fileId}`);
   return model;
 }
 
@@ -230,11 +230,21 @@ fragments.list.onItemSet.add(({value: model}) => {
 
 // Load the model from the database if we have a project ID and file ID
 if (projectId && fileId) {
-  loadIfcFromDatabase(projectId, fileId).catch(error => {
+  loadIfcFromDatabase(projectId, fileId, fileName).catch(error => {
     console.error("Failed to load model from database:", error);
   });
 }
 
+if (projectId && fileIdsParam) {
+  const fileIds = fileIdsParam.split(',').map(id => id.trim());
+  (async () => {
+    for (const id of fileIds) {
+      await loadIfcFromDatabase(projectId, id, `model_${id}`).catch(error => {
+        console.error(`Failed to load model with file ID ${id} from database:`, error);
+      });
+    }
+  })();
+}
 // Initialize UI panels
 initializePanels(components, fragments);
 
