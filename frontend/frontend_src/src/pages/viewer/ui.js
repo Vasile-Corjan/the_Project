@@ -906,14 +906,12 @@ export function setupViewHelper(world) {
   const renderer = world.renderer.three;
   const controls = world.camera.controls;
 
-  renderer.autoClear = false;
-
   const viewHelper = new ViewHelper(camera, renderer.domElement);
   viewHelper.controls = controls;
 
   viewHelper.setLabels('X', 'Y', 'Z');
 
-  const clock = new THREE.Clock();
+  const clock = new THREE.Timer();
 
   renderer.domElement.addEventListener('pointerup', (e) => {
 	const wasViewHelperClick = viewHelper.handleClick(e);
@@ -921,6 +919,7 @@ export function setupViewHelper(world) {
 		controls.enabled = false;
 	}
   });
+
   function renderViewHelper() {
     requestAnimationFrame(renderViewHelper);
 
@@ -938,6 +937,5 @@ export function setupViewHelper(world) {
   }
 
   renderViewHelper();
-
 }
 

@@ -54,6 +54,7 @@ world.camera.controls.minDistance = 1;
 world.camera.controls.maxDistance = 1000
 world.camera.controls.camera.updateProjectionMatrix();
 
+
 // Renderer changes
 world.renderer.three.shadowMap.enabled = true;
 world.renderer.three.shadowMap.type = THREE.PCFShadowMap;
@@ -63,6 +64,7 @@ world.renderer.three.toneMappingExposure = 0.8;
 world.renderer.three.physicallyCorrectLights = true;
 world.renderer.postproduction.enabled = true;
 world.dynamicAnchor = false;
+world.renderer.showLogo = false;
 
 const { aoPass, outlinePass, edgesPass } = world.renderer.postproduction;
 
@@ -135,6 +137,36 @@ world.scene.three.background = color;
 const grids = components.get(OBC.Grids);
 const grid = grids.create(world);
 
+let path = './worker.mjs';
+const workerUrl = new URL(path, import.meta.url).href;
+const fragments = components.get(OBC.FragmentsManager);
+await fragments.init(workerUrl);
+
+
+world.camera.controls.addEventListener("update", () =>
+  fragments.core.update()
+);
+
+world.onCameraChanged.add((camera) => {
+  for (const [, model] of fragments.list) {
+    model.useCamera(camera.three);
+  }
+  fragments.core.update(true);
+});
+
+fragments.list.onItemSet.add(({ value: model }) => {
+  model.useCamera(world.camera.three);
+  world.scene.three.add(model.object);
+  fragments.core.update(true);
+});
+
+fragments.core.models.materials.list.onItemSet.add(({ value: material }) => {
+  if (!("isLodMaterial" in material && material.isLodMaterial)) {
+    material.polygonOffset = true;
+    material.polygonOffsetUnits = 1;
+    material.polygonOffsetFactor = Math.random();
+  }
+});
 
 /* const { postproduction } = world.renderer;
 postproduction.enabled = true; // Enables post-processing effects */
@@ -183,14 +215,7 @@ await ifcLoader.setup({
   },
 });
 
-let path = './worker.mjs';
-const workerUrl = new URL(path, import.meta.url).href;
-const fragments = components.get(OBC.FragmentsManager);
-fragments.init(workerUrl);
 
-world.camera.controls.addEventListener("rest", () =>
-  fragments.core.update(false),
-);
 
 // Function to load IFC file from the DB
 async function loadIfcFromDatabase(projectId, fileId, modelName) {
