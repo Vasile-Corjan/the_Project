@@ -38,3 +38,7 @@ env
 
 # Personal files
 todolist.md
+frontend_requirements.txt
+
+# Databases
+*.sqlite3
