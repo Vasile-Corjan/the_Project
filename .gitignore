@@ -37,8 +37,8 @@ myenv
 env
 
 # Personal files
-todolist.md
 frontend_requirements.txt
+other/
 
 # Databases
 *.sqlite3

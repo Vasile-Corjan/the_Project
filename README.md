@@ -41,7 +41,7 @@ A collaborative engineering workspace built with open source tools where archite
   - Drawing/document handling (e.g., DWG/PDF)
   - Metadata-ready architecture for discipline coordination
 
-*Comming soon*
+*Coming soon*
 - **Versioned collaboration**
   - Traceable changes over time
   - Foundation for compare/review workflows
