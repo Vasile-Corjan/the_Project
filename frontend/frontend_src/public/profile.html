@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <link rel="stylesheet" href="./styles/profile.css">
+</head>
+<!-- RENAME THIS PAGE TO DASHBOARD -->
+<!-- FINISH THIS FILE WITH THE PROPER CSS AND FUNCTIONALLITY -->
+
+<body>
+  <header class="appHeader">
+    <div class="appHeader-bar">
+      <div class="appHeader-bar-left">
+        <a href="/">LOGO</a>
+        <a href="#">Dashboard</a>
+      </div>
+      <div class="appHeader-bar-right">
+        <div class="appHeader-user" tabindex="0" aria-haspopup="true" aria-expanded="false">
+          <img src="./static/avatar-user.png" alt="User Avatar" sizes="32" height="32" width="32" class="dropbtn">
+          <div class="dropdown-content" role="menu">
+            <div class="dropdown-header">
+              <div class="user-info">
+                <img src="./static/avatar-user.png" alt="User Avatar" sizes="40" height="40" width="40"
+                  class="user-avatar">
+                <div class="user-details">
+                  <span class="user-fullname"></span>
+                  <span class="user-username"></span>
+                </div>
+              </div>
+            </div>
+            <div class="dropdown-divider"></div>
+            <a href="#">Settings</a>
+            <a href="#">About</a>
+            <div class="dropdown-divider"></div>
+            <a href="#" onclick="localStorage.clear(); window.location.href='/'">Log out</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+  <div class="project-navbar">
+    <nav class="navbar">
+      <ul class="navbar-body">
+        <li><button class="tab-link" id="project-tab">Overview</button></li>
+        <li><button class="tab-link" id="issues-tab">Projects</button></li>
+        <li><button class="tab-link" id="settings-tab">Settings</button></li>
+      </ul>
+    </nav>
+  </div>
+  <div class="app-main">
+    <aside class="side-bar">
+      <div class="side-bar-components">
+        <h2>Top projects</h2>
+        <ul class="project-list"></ul>
+      </div>
+    </aside>
+    <main class="content">
+      <section class="content-section1">
+        <h2>Home</h2>
+        <p>Learn with a tutorial project</p>
+        <div class="cards">
+          <div class="card-item">
+            <h4>Introduction to the platform</h4>
+            <p>Get started using ..... in less than you ever experienced</p>
+          </div>
+          <div class="card-item">
+            <h4>Collaborate with your peers</h4>
+            <p>Work together with other at your projects</p>
+          </div>
+          <div class="card-item">
+            <h4>Store securely your project materials</h4>
+            <p>It is very secure here. Test against the Russian cyberattacks. Moldovan quality</p>
+          </div>
+          <div class="card-item">
+            <h4>Say hello to other</h4>
+            <p>Connect and share your opnions and workflows with others</p>
+          </div>
+        </div>
+      </section>
+      <section class="content-section2">
+        <p>Start a project</p>
+        <div class="cards">
+          <div class="card-item">
+            <h4>Start a new project for .....</h4>
+            <p>A project contains all you project materials, revision history, and collaborator discussion.</p>
+            <form class="new-project-form">
+              <label for="project-name">Project name *</label>
+              <input type="text" id="project-name" name="project-name" placeholder="name your new repository...">
+              <div class="radio-group">
+                <label>
+                  <input type="radio" name="visibility" value="public">
+                  Public
+                </label>
+                <label>
+                  <input type="radio" name="visibility" value="private" checked>
+                  Private
+                </label>
+              </div>
+              <button type="submit" class="create-project-btn">Create a new project</button>
+            </form>
+          </div>
+          <div class="card-item">
+            <h4>Introduce yourself</h4>
+            <p>Share information about yourself by creating a profile, which appears at the top of your profile page.
+            </p>
+            <ul class="profile-form">
+              <li>
+                <label for="">- 👋 Hi, I'm ...</label>
+              </li>
+              <li>
+                <label for="">- 👀 I'm interested in ...</label>
+              </li>
+              <li>
+                <label for="">- 🌱 I'm currently learning ...</label>
+              </li>
+              <li>
+                <label for="">- 💞️ I'm looking to collaborate on ...</label>
+              </li>
+              <li>
+                <label for="">- 📫 How to reach me ...</label>
+              </li>
+              <li>
+                <label for="">- ⚡ Fun fact ...</label>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+    </main>
+  </div>
+</body>
+
+</html>

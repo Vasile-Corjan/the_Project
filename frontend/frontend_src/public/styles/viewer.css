@@ -1,0 +1,455 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  height: 100vh;
+  display: grid;
+  grid-template-columns: 250px 1fr; /* 250px for the side panel, the rest for the viewer */
+  grid-template-rows: 1fr;
+  overflow: hidden;
+}
+.appHeader {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background-color: #333;
+  color: white;
+  padding: 0 16px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 48px;
+  z-index: 100;
+}
+
+.appHeader-bar {
+  width: 100%;
+  max-width: 1200px; /* Constrains the width for larger screens */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.appHeader-menu {
+  flex: 1;
+  display: flex;
+  justify-content: center; /* This centers the breadcrumb in the menu area */
+  align-items: center;
+}
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  padding: 8px 0;
+  justify-content: center; /* Center items */
+  max-width: 100%; /* Ensure it doesn't overflow */
+  overflow: hidden; /* Hide overflow */
+}
+
+.breadcrumb-item {
+  color: #fff;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  transition: color 0.2s ease;
+  white-space: nowrap; /* Prevent wrapping */
+  overflow: hidden;
+  text-overflow: ellipsis; /* Add ellipsis for long text */
+  max-width: 150px; /* Limit width */
+  margin: 0 5px 0 5px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .breadcrumb-item {
+    max-width: 100px; /* Smaller on mobile */
+  }
+  
+  .appHeader-bar {
+    padding: 0 8px;
+  }
+}
+
+/* Fix container for proper header positioning */
+#container {
+  outline: none;
+  width: 100vw;
+  height: calc(100vh - 48px); /* Subtract header height */
+  margin-top: 48px; /* Add margin equal to header height */
+
+}
+.side-nav {
+  display: flex;
+  flex-direction: row;  
+  height: 100%;
+  position: fixed;
+  top: 15px;
+  left: 0;
+  padding: 30px 15px;
+  z-index: 100;
+}
+
+.nav-menu{
+  display: flex;
+  position: relative;
+  flex-direction: column;
+}
+
+.nav-menu button{
+  width: 40px;
+  height: 40px;
+  background-color: whitesmoke;
+  border-radius: 6px;
+  margin-top: 10px;
+  cursor: pointer;
+  border: none;
+}
+
+.data-panel {
+  display: absolute;
+  top: 0;
+  left: 100%;
+  background-color: whitesmoke;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 10px;
+  width: 364px;
+  height: 136px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  z-index: 101;
+  margin-left: 10px;
+  margin-top: 15px;
+  height: fit-content;
+  overflow-y: auto;
+  transform: translate(-10px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.data-panel > p:first-child {
+  margin: 0 0 15px 0;
+  font-weight: bold;
+  font-size: 16px;
+  color: #333;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 5px;
+}
+
+.modelDiv{
+  border-bottom: 1px solid #ddd;
+}
+
+.modelDiv .model-icons-name p {
+  margin: 5px 0;
+  font-weight: bold;
+  color: #444;
+}
+
+.model-icons-name{
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 5px 0;
+}
+
+.icon-container {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: right;
+  
+}
+
+.icon-container > button {
+  background: none;
+  cursor: pointer;
+  outline: none;
+  border: none;
+  padding: 5px;
+}
+
+.icon-container button:hover{
+  background-color: #747272;
+  border-radius: 6px;
+  padding: 5px;
+}
+
+.modelDiv span{
+  display: block;
+  width: auto;
+  max-width: fit-content;
+  margin: 5px 0;
+  padding: 5px 8px;
+  font-size: 12px;
+  color: #555;
+  background-color: rgba(63, 63, 63, 0.1);
+  border-radius: 3px;
+  border-left: 3px solid #3f3f3f;
+}
+
+.data-panel {
+  opacity: 0;
+  transform: translateX(-10px);
+}
+
+.data-panel.visible {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.tree-panel{
+  display: absolute;
+  top: 0;
+  left: 100%;
+  background-color: whitesmoke;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 10px;
+  width: 364px;
+  height: 90vh;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  z-index: 101;
+  margin-left: 10px;
+  margin-top: 15px;
+  overflow-y: auto;
+}
+
+.tree-panel > p:first-child {
+  margin: 0 0 15px 0;
+  font-weight: bold;
+  font-size: 16px;
+  color: #333;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 5px;
+}
+
+hr {
+  margin: 10px 0;
+  border-top: 1px solid #ccc;
+}
+
+.model-tree-container{
+  margin: 10px;
+}
+
+.tree-node-header{
+  padding: 0.45rem;
+  border-bottom: 1px solid #ddd;
+}
+
+.tree-node-header span {
+  font-size: 13px;
+}
+
+.selection-nav{
+  display: flex;
+  flex-direction: row;  
+  height: 100%;
+  position: fixed;
+  top: 15px;
+  right: 0;
+  padding: 30px 15px;
+  z-index: 101;
+  margin-top: 10px
+}
+
+.selection-panel{
+  max-height: 100%;
+  height: fit-content;
+  width: 350px; /* width:fit-content */
+  background-color: whitesmoke;
+  border-radius: 8px;
+  font-size: 14px;
+  overflow-y: scroll;
+}
+
+.selection-panel-header{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid #ccc;
+}
+
+.selection-panel-header > h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.selection-panel-header > button {
+  background: none;
+  border: none;
+  color: #333;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.attribute-type{
+  font-weight: bold;
+  padding: 8px 12px;
+
+}
+
+.set-header{
+  padding: 6px 12px;
+  border-bottom: 1px solid #ccc;
+}
+
+.property-row{
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 12px;
+  border-bottom: 1px solid #ccc;
+}
+
+.property-name, .property-value{
+  font-size: 12px;
+  text-align: left;
+  max-width: 50%;
+  gap: 1.25rem 0.25rem;
+  padding: 5px;
+  word-break: normal;
+}
+
+.property-value{
+  text-align: right;
+}
+
+#camera-view {
+  position: fixed;
+  top: 0;
+  right: 10px;
+}
+
+input {
+  z-index: 1000;
+  position: fixed;
+  top: 20px;
+  right: 0;
+}
+.bottom-menu{
+  position: fixed;
+  bottom: 5%;
+  left: 0;
+  right: 0;
+  margin: auto;
+  max-width: 500px;
+  height: 60px;
+  background-color: black;
+  z-index: 1;
+  border-radius: 20px;
+}
+
+.navbar{
+  display: flex;
+  justify-content: space-around;
+  height:inherit;
+  align-items: center;
+}
+
+ul{
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+  flex-grow: 1;
+}
+
+ul > li {
+  display: flex;
+  align-items: center;
+  list-style-type: none;
+}
+
+li > button {
+  display: flex;
+  position: inherit;
+  justify-content: space-between;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+.hidden-input{
+  display: none;
+}
+
+#perspective-view{
+  right: 0px;
+}
+
+#ortho-view{
+  right: 0px;
+  top: 20px;
+}
+
+#fit{
+  right: 0px;
+  top: 40px;
+}
+#dim{
+  right: 0px;
+  top: 60px;
+}
+#clip{
+  right: 0px;
+  top: 80px;
+}
+
+#clip-menu{
+  position: absolute;
+  bottom: calc(100% + 5px);
+  right: 10%;
+  display: flex;
+  gap: 8px;
+  padding: 8px;
+  background: rgba(0, 0, 0, 0.9);
+  border-radius: 10px;
+  z-index: 20;
+  flex-direction: column;
+}
+
+#dim-menu{
+  position: absolute;
+  bottom: calc(100% + 5px);
+  right: -70px;
+  display: flex;
+  gap: 8px;
+  padding: 8px;
+  background: rgba(0, 0, 0, 0.9);
+  border-radius: 10px;
+  z-index: 20;
+  flex-direction: column;
+}
+
+
+
+#clip-menu button, #dim-menu button{
+  border: none;
+  border-radius: 8px;
+  padding: 6px 12px;
+}
+
+.model-entry{
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.model-entry label{
+  background-color: blueviolet;
+  padding: 0 0.25rem;
+  color: white;
+  border-radius: 0.25rem;
+}

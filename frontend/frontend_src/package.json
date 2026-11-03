@@ -1,0 +1,24 @@
+{
+  "name": "frontend_src",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "vite": "^6.0.5"
+  },
+  "dependencies": {
+    "@thatopen/components": "^3.4.6",
+    "@thatopen/components-front": "^3.4.3",
+    "@thatopen/fragments": "^3.4.5",
+    "@thatopen/ui": "^3.4.5",
+    "axios": "^1.7.9",
+    "jwt-decode": "^4.0.0",
+    "three": "^0.184.0",
+    "web-ifc": "^0.0.77"
+  }
+}

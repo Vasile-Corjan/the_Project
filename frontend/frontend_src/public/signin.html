@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign In - AEClab</title>
+  <link rel="stylesheet" href="styles/signin.css">
+</head>
+
+<body class="signin-page">
+  <header class="signin-page_header">
+    <div class="sigin-page_logo">
+      <a href="/"><img src="logo.png" alt="Logo"></a>
+    </div>
+  </header>
+  <form class="signin-page_form" id="signinForm">
+    <p class="signin-page_title">Sign In</p>
+    <p class="signin-page_message">Sign in now and get full access to our app.</p>
+
+    <div class="signin-page_flex">
+      <label>
+        <input class="signin-page_input" type="text" name="username" placeholder="" required>
+        <span>Username</span>
+      </label>
+    </div>
+
+    <label>
+      <input class="signin-page_input" type="password" placeholder="" name="password" required>
+      <span>Password</span>
+    </label>
+
+    <button class="signin-page_submit" type="submit">Sign In</button>
+
+    <p class="signin-page_signup-link">
+      Don't have an account? <a href="signup">Sign up</a>
+    </p>
+  </form>
+</body>
+
+</html>
