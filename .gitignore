@@ -34,7 +34,7 @@ __pycache__/
 # Envirnoments
 .env
 myenv
-env
+.venv
 
 # Personal files
 frontend_requirements.txt
