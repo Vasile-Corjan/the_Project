@@ -6,7 +6,6 @@ from main_app.models import Project, ProjectFiles
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     @classmethod
-    
     def get_token(cls, user):
       token = super().get_token(user)
       return token 
@@ -43,21 +42,21 @@ class UserSerializer(serializers.ModelSerializer):
     user.save()
     return user
 
-
 class ProjectSerializer(serializers.ModelSerializer):
   class Meta:
     model = Project
-    fields = ('id', 'name', 'created_at', 'updated_at','description')
-    read_only_fields = ['owner']
+    fields = ('id', 'name', 'created_at', 'updated_at','description','visibility')
+    read_only_fields = ['owner', 'created_at', 'updated_at']
 
 
 class ProjectFileSerializer(serializers.ModelSerializer):
-  #uploaded_by_username = serializers.SerializerMethodField()
+  uploaded_by_username = serializers.SerializerMethodField()
   class Meta:
     model = ProjectFiles
-    fields = ['id', 'name', 'file', 'project', 'file_type', 'size', 'uploaded_at', 
-              'uploaded_by']
-    read_only_fields = ['id', 'uploaded_at']
+    fields = ['id', 'filename', 'file', 'project', 
+              'file_type', 'size', 'uploaded_at', 'uploaded_by', 'uploaded_by_username', 'file_hash'
+              ]
+    read_only_fields = ['id', 'uploaded_at', 'file_hash', 'uploaded_by_username']
 
-   # def get_uploaded_by_username(self, obj):
-    #  return obj.uploaded_by_usernam if obj.uploaded_by else None
+  def get_uploaded_by_username(self, obj):
+    return obj.uploaded_by.username if obj.uploaded_by else None

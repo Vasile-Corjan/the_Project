@@ -41,4 +41,5 @@ frontend_requirements.txt
 other/
 
 # Databases
-*.sqlite3*.ifc
+*.sqlite3
+*.ifc

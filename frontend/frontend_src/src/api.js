@@ -6,9 +6,11 @@ export async function authenticatedFetch(url, options = {}) {
     return;
   }
 
-  const headers ={
+  const authHeader = 'Bearer ' + token;
+  const headers = {
     ...options.headers,
-    'Authorization': `Bearer ${token}`
+    'Authorization': authHeader,
+    'Content-Type': 'application/json'
   };
 
   try {
@@ -33,22 +35,23 @@ export async function authenticatedFetch(url, options = {}) {
   }
 }
 
-export async function logout(){
+export async function logout() {
   const refresh_token = localStorage.getItem('refresh_token');
 
-  if (refresh_token){
-    try{
-      await fetch('http://localhost:8000/api/token/refresh/', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({refresh: refresh_token})
-    });
-  } catch (error) {
-      console.error('Logout error', error)
+  if (refresh_token) {
+    try {
+      await fetch('http://localhost:8000/api/token/blacklist/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ refresh: refresh_token })
+      });
+    } catch (error) {
+      console.error('Logout error', error);
     }
-}
+  }
+
   localStorage.removeItem('access_token');
   localStorage.removeItem('refresh_token');
   localStorage.removeItem('username');
@@ -59,8 +62,7 @@ export async function logout(){
 async function refreshToken() {
   const refresh_token = localStorage.getItem('refresh_token');
 
-
-  if (!refresh_token){
+  if (!refresh_token) {
     return false;
   }
 
@@ -70,15 +72,15 @@ async function refreshToken() {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({refresh: refresh_token})
+      body: JSON.stringify({ refresh: refresh_token })
     });
 
     if (response.ok) {
-      const data =  await response.json();
+      const data = await response.json();
       localStorage.setItem('access_token', data.access);
       return true;
     }
-  } catch (error){
+  } catch (error) {
     console.error('Token refresh failed', error);
   }
   return false;

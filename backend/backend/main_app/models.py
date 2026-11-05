@@ -5,7 +5,6 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 
 class Project(models.Model):
-
   visibility_choices = [('public', 'Public'), ('private', 'Private')]
 
   name = models.CharField(max_length=100)
@@ -17,7 +16,6 @@ class Project(models.Model):
 
   def __str__(self):
     return self.name
-
 
 def validate_file_size(value):
   filesize = value.size
@@ -55,6 +53,7 @@ class ProjectFiles(models.Model):
     ordering = ['-uploaded_at']
     indexes = [models.Index(fields=['project', 'file_type']),
                models.Index(fields=['uploaded_by'])]
+  
   def __str__(self):
     return self.filename
 
@@ -78,5 +77,5 @@ class ProjectFiles(models.Model):
 
   """ def delete(self, *args, **kwargs):
     self.is_deleted = True
-    self.delete_at = timezone.now()
+    self.deleted_at = timezone.now()
     self.save() """

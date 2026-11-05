@@ -298,7 +298,6 @@ function uploadFile(){
 
       const result = await response.json()
       console.log("The uploaded file:", result)
-      alert(`File "${file.name}" uploaded successfully!`)
 
       refreshFilesList(projectId);
 
@@ -346,11 +345,11 @@ async function  refreshFilesList(projectId){
         const uploadDate = new Date(file.uploaded_at);
         const formattedDate = uploadDate.toLocaleDateString();
 
-        const fileName = file.name;
+        const fileName = file.filename;
 
         row.innerHTML = `
         <td class="file-name">
-          <a href="#" class="ifc-file-link" data-file-id="${file.id}" data-project-id="${projectId}">${file.name}</a>
+          <a href="#" class="ifc-file-link" data-file-id="${file.id}" data-project-id="${projectId}">${file.filename}</a>
         </td>
         <td class="change-time">'N/A'</td>
         <td class="update-time">${formattedDate}</td>

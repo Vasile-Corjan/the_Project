@@ -899,43 +899,93 @@ export async function crumbleMenu() {
     parent.appendChild(separator);
   }
 }
-// GIZMO
 
+// GIZMO
 export function setupViewHelper(world) {
   const camera = world.camera.three;
   const renderer = world.renderer.three;
   const controls = world.camera.controls;
-
-  const viewHelper = new ViewHelper(camera, renderer.domElement);
+  const domElement = renderer.domElement;
+  const viewHelper = new ViewHelper(camera, domElement);
   viewHelper.controls = controls;
-
   viewHelper.setLabels('X', 'Y', 'Z');
 
-  const clock = new THREE.Timer();
+  const timer = new THREE.Timer();
+  let isControlsLocked = false;
+  let animationFrameId = null;
 
-  renderer.domElement.addEventListener('pointerup', (e) => {
-	const wasViewHelperClick = viewHelper.handleClick(e);
-	if (wasViewHelperClick) {
-		controls.enabled = false;
-	}
-  });
+  const lockControls = () => {
+    controls.enabled = false;
+    isControlsLocked = true;
+  };
 
-  function renderViewHelper() {
-    requestAnimationFrame(renderViewHelper);
+  const unlockControls = () => {
+    controls.setLookAt(
+      camera.position.x,
+      camera.position.y,
+      camera.position.z,
+      viewHelper.center.x,
+      viewHelper.center.y,
+      viewHelper.center.z,
+      false
+    );
+    controls.enabled = true;
+    isControlsLocked = false;
+  };
 
-    const delta = clock.getDelta();
+  const syncViewHelperCenterWithControls = () => {
+    if (typeof controls.getTarget === "function") {
+      controls.getTarget(viewHelper.center);
+      return;
+    }
+
+    if (controls.target) {
+      viewHelper.center.copy(controls.target);
+    }
+  };
+
+  const renderViewHelperOverlay = () => {
+    const previousAutoClear = renderer.autoClear;
+    renderer.autoClear = false;
+    renderer.clearDepth();
+    viewHelper.render(renderer);
+    renderer.autoClear = previousAutoClear;
+  };
+
+  const animateViewHelperCamera = () => {
+    timer.update();
+    const delta = timer.getDelta();
 
     if (viewHelper.animating) {
       viewHelper.update(delta);
-      if (!viewHelper.animating) {
-        controls.enabled = true;
-      }
+      world.renderer.update();
+      animationFrameId = requestAnimationFrame(animateViewHelperCamera);
+      return;
     }
 
-    renderer.autoClear = false;
-    viewHelper.render(renderer);
-  }
+    if (isControlsLocked) {
+      unlockControls();
+    }
 
-  renderViewHelper();
+    animationFrameId = null;
+  };
+
+  const handlePointerUp = (event) => {
+    syncViewHelperCenterWithControls();
+    const wasViewHelperClick = viewHelper.handleClick(event);
+
+    if (wasViewHelperClick && viewHelper.animating) {
+      lockControls();
+      if (animationFrameId === null) {
+        timer.update();
+        animationFrameId = requestAnimationFrame(animateViewHelperCamera);
+      }
+    }
+  };
+
+  domElement.addEventListener('pointerup', handlePointerUp);
+
+  world.renderer.onAfterUpdate.add(() => {
+    renderViewHelperOverlay();
+  });
 }
-

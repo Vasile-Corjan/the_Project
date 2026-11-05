@@ -2,7 +2,7 @@ import os
 from django.contrib.auth.models import User
 from django.http import FileResponse
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated, AllowAny, BasePermission, IsAdminUser
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.decorators import api_view, permission_classes 
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework import viewsets, status, generics
@@ -25,17 +25,13 @@ def getRoutes(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def user_profile(request):
-    user = request.user
-    return Response({
-        'username': user.username,
-        'email': user.email,
-        'first_name': user.first_name,
-        'last_name': user.last_name
-    })
+    serializer = UserSerializer(request.user)
+    return Response(serializer.data)
 
 class CreateUserView(generics.CreateAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
+    permission_classes = [AllowAny]
 
 
 class ProjectViewSet(viewsets.ModelViewSet):
@@ -96,20 +92,14 @@ class UploadFilesView(APIView):
       # For IFC files, don't force download, just serve the content
       if file_type == 'ifc':
           # For IFC files that need to be processed by the viewer
-          response['Content-Disposition'] = f'inline; filename="{file_obj.name}.{file_obj.file_type}"'
+          response['Content-Disposition'] = f'inline; filename="{file_obj.filename}.{file_obj.file_type}"'
       else:
           # For other files, suggest download
-          response['Content-Disposition'] = f'attachment; filename="{file_obj.name}.{file_obj.file_type}"'
+          response['Content-Disposition'] = f'attachment; filename="{file_obj.filename}.{file_obj.file_type}"'
       
       # Add CORS headers to ensure the browser can access the file
-      response["Access-Control-Allow-Origin"] = "*"
       response["Access-Control-Allow-Methods"] = "GET, OPTIONS"
       response["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
-      
-      # For debugging - add response details
-      print(f"Serving file: {file_path}")
-      print(f"Content-Type: {content_type}")
-      print(f"File size: {os.path.getsize(file_path)} bytes")
       
       return response
         
@@ -148,17 +138,17 @@ class UploadFilesView(APIView):
     if not file_obj:
       return Response({"error": "No file provided"}, status=status.HTTP_400_BAD_REQUEST)
     else:
-      filename = file_obj.name
-      name_parts = filename.split('.')
+      file_name = file_obj.name
+      name_parts = file_obj.name.rsplit('.', 1)
       basename = name_parts[0]
-      extension = name_parts[1]
+      extension = name_parts[1].lower() if len(name_parts) > 1 else ''
 
     try:
-      project = Project.objects.get(id=project_pk)
+      project = Project.objects.get(id=project_pk, owner=request.user)
       file_data = {
         'project': project.id,
         'file': file_obj,
-        'name': basename,
+        'filename': basename,
         'uploaded_by': request.user.id,
         'size': file_obj.size,
         'file_type': extension.lower()
@@ -178,16 +168,17 @@ class UploadFilesView(APIView):
     
     if not file_id:
       return Response({"error": "File ID is required"}, status=status.HTTP_400_BAD_REQUEST)
-    
-    project = Project.objects.get(id=project_pk)
-    file_obj = ProjectFiles.objects.get(id=file_id, project_id=project.id)
-
-    filename = file_obj.name
-
-    file_obj.delete()
-
-    return Response({"message": f"File '{filename}' delete successfully"},
-                    status=status.HTTP_204_NO_CONTENT)
+    try:
+      project = Project.objects.get(id=project_pk, owner=request.user)
+      file_obj = ProjectFiles.objects.get(id=file_id, project_id=project.id, is_deleted=False)
+      file_name = file_obj.filename
+      file_obj.delete()
+      return Response({"message": f"File '{file_name}' delete successfully"},
+                      status=status.HTTP_204_NO_CONTENT)
+    except Project.DoesNotExist:
+       return Response({"error": "Project not found"}, status=status.HTTP_404_NOT_FOUND)
+    except ProjectFiles.DoesNotExist:
+       return Response({"error": "File not found"}, status=status.HTTP_404_NOT_FOUND)
 
 
     
