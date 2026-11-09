@@ -54,82 +54,81 @@ class UploadFilesView(APIView):
   permission_classes = [IsAuthenticated]
   parser_classes = [MultiPartParser, FormParser]
 
+  def get_content_type(self, file_type):
+      """Determine the MIME type based on file extension"""
+      content_types = {
+          'pdf': 'application/pdf',
+          'txt': 'text/plain',
+          'csv': 'text/csv',
+          'jpg': 'image/jpeg',
+          'jpeg': 'image/jpeg', 
+          'png': 'image/png',
+          'gif': 'image/gif',
+          'doc': 'application/msword',
+          'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+          'xls': 'application/vnd.ms-excel',
+          'xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+          'ifc': 'application/octet-stream',  # IFC files as binary
+      }    
+      return content_types.get(file_type.lower(), 'application/octet-stream')
+  
  # In your Django view that handles file retrieval
   def get(self, request, project_pk=None, file_id=None):
     try:
-      # If no file_id, return list of files for the project
-      if not file_id:
-          files = ProjectFiles.objects.filter(project_id=project_pk)
-          serializer = self.serializer_class(files, many=True)
-          return Response(serializer.data)
-          
+      project = Project.objects.get(id=project_pk, owner=request.user)
+    except Project.DoesNotExist:
+      return Response({"error": "Project not found"}, status=status.HTTP_404_NOT_FOUND)
+    
+    # If no file_id, return list of files for the project
+    if not file_id:
+      files = ProjectFiles.objects.filter(project=project, is_deleted=False)
+      serializer = self.serializer_class(files, many=True)
+      return Response(serializer.data)
+    
+    try:    
       # Get specific file
-      file_obj = ProjectFiles.objects.get(id=file_id, project_id=project_pk)
-      file_path = file_obj.file.path
+      file_obj = ProjectFiles.objects.get(id=file_id, project=project, is_deleted=False)
+    except ProjectFiles.DoesNotExist:
+      return Response({"error": "File not found"}, status=status.HTTP_404_NOT_FOUND)
+    
+    file_path = file_obj.file.path
       
-      # Verify the file exists and has content
-      if not os.path.exists(file_path):
-          return Response({"error": "File not found on disk"}, status=status.HTTP_404_NOT_FOUND)
-          
-      if os.path.getsize(file_path) == 0:
-          return Response({"error": "File is empty"}, status=status.HTTP_400_BAD_REQUEST)
+    # Verify the file exists and has content
+    if not os.path.exists(file_path):
+      return Response({"error": "File not found on disk"}, status=status.HTTP_404_NOT_FOUND)
+        
+    if os.path.getsize(file_path) == 0:
+      return Response({"error": "File is empty"}, status=status.HTTP_400_BAD_REQUEST)
+    
+    # Get the file extension to determine content type
+    file_type = file_obj.file_type.lower() if file_obj.file_type else ''
       
-      # Get the file extension to determine content type
-      file_type = file_obj.file_type.lower() if file_obj.file_type else ''
+    # Determine appropriate content type
+    content_type = self.get_content_type(file_type)
       
-      # Determine appropriate content type
-      content_type = self.get_content_type(file_type)
-      
-      # Open the file and create FileResponse
-      file_handle = open(file_path, 'rb')
-      
-      # Set the proper content type for the response
-      response = FileResponse(
-          file_handle,  # FileResponse will handle closing the file
-          content_type=content_type
-      )
+    # Open the file and create FileResponse
+    file_handle = open(file_path, 'rb')
+    
+    # Set the proper content type for the response
+    response = FileResponse(
+        file_handle,  # FileResponse will handle closing the file
+        content_type=content_type)
       
       # For IFC files, don't force download, just serve the content
-      if file_type == 'ifc':
-          # For IFC files that need to be processed by the viewer
-          response['Content-Disposition'] = f'inline; filename="{file_obj.filename}.{file_obj.file_type}"'
-      else:
-          # For other files, suggest download
-          response['Content-Disposition'] = f'attachment; filename="{file_obj.filename}.{file_obj.file_type}"'
-      
-      # Add CORS headers to ensure the browser can access the file
-      response["Access-Control-Allow-Methods"] = "GET, OPTIONS"
-      response["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
-      
-      return response
-        
-    except ProjectFiles.DoesNotExist:
-        return Response({"error": "File not found"}, status=status.HTTP_404_NOT_FOUND)
-    except Exception as e:
-        import traceback
-        print(f"Error retrieving file: {str(e)}")
-        print(traceback.format_exc())
-        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-  def get_content_type(self, file_type):
-    """Determine the MIME type based on file extension"""
-    content_types = {
-        'pdf': 'application/pdf',
-        'txt': 'text/plain',
-        'csv': 'text/csv',
-        'jpg': 'image/jpeg',
-        'jpeg': 'image/jpeg', 
-        'png': 'image/png',
-        'gif': 'image/gif',
-        'doc': 'application/msword',
-        'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        'xls': 'application/vnd.ms-excel',
-        'xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        'ifc': 'application/octet-stream',  # IFC files as binary
-    }
+    if file_type == 'ifc':
+      # For IFC files that need to be processed by the viewer
+      response['Content-Disposition'] = f'inline; filename="{file_obj.filename}.{file_obj.file_type}"'
+    else:
+      # For other files, suggest download
+      response['Content-Disposition'] = f'attachment; filename="{file_obj.filename}.{file_obj.file_type}"'
     
-    return content_types.get(file_type.lower(), 'application/octet-stream')
+    # Add CORS headers to ensure the browser can access the file
+    response["Access-Control-Allow-Methods"] = "GET, OPTIONS"
+    response["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
+      
+    return response
 
+  
   def post(self, request, project_pk=None):
     if not project_pk:
       return Response({"error": "Project ID is required"}, status=status.HTTP_400_BAD_REQUEST)
