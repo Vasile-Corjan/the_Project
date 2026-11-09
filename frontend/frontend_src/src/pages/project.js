@@ -181,7 +181,7 @@ function setupSettingsForm(projectId) {
       try {
         const updatedName = document.getElementById('project-name').value;
         const updatedDescription = document.getElementById('project-description').value;
-        const visibilityRadios = document.getElementsByName('visibility');
+        const visibilityRadios = document.getElementsByName('visibility').value;
         
         let visibility = 'public';
         for (const radio of visibilityRadios) {
@@ -200,7 +200,7 @@ function setupSettingsForm(projectId) {
           body: JSON.stringify({
             name: updatedName,
             description: updatedDescription,
-            visibility: visibility
+            visibility: visibilityRadios,
           })
         });
         
@@ -287,10 +287,11 @@ function uploadFile(){
         formData.append('file', file);
         formData.append('name', file.name);
       
-        const response = await authenticatedFetch(`http://localhost:8000/api/projects/${projectId}/files/`, {
-        method: 'POST',
-        body: formData
-      });
+        const response = await authenticatedFetch(`http://localhost:8000/api/projects/${projectId}/files/`, 
+          { method: 'POST', 
+            body: formData
+          }
+        );
 
       if(!response.ok){
         throw new Error(`Upload failed: ${response.status}`);
@@ -386,17 +387,17 @@ async function  refreshFilesList(projectId){
 }
 
 // filedid 28 and 27
-function federatedModel(){
+/* function federatedModel(){
   const goToViewerBtn = document.querySelector('.go-to-viewer');
   const urlParams = new URLSearchParams(window.location.search);
   const projectId = urlParams.get('id');
 
   if(goToViewerBtn){
     goToViewerBtn.addEventListener('click', () => {
-      window.location.href = `/viewer?projectId=${projectId}/&fileId=28`;
+      window.location.href = `/viewer?projectId=${projectId}&fileId=28`;
     });
   }
-}
+} */
 
 export default Project;
 

@@ -9,8 +9,7 @@ export async function authenticatedFetch(url, options = {}) {
   const authHeader = 'Bearer ' + token;
   const headers = {
     ...options.headers,
-    'Authorization': authHeader,
-    'Content-Type': 'application/json'
+    'Authorization': authHeader
   };
 
   try {
