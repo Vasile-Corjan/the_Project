@@ -17,7 +17,7 @@ export async function Project() {
       settingsTab();
       initializeUserDropdown();
       uploadFile();
-      federatedModel();
+      //federatedModel();
       
       const projectData = await loadProjectData(projectId);
       updateProjectDescription(projectData.name, projectData.description);
@@ -181,7 +181,7 @@ function setupSettingsForm(projectId) {
       try {
         const updatedName = document.getElementById('project-name').value;
         const updatedDescription = document.getElementById('project-description').value;
-        const visibilityRadios = document.getElementsByName('visibility').value;
+        const visibilityRadios = document.getElementsByName('visibility');
         
         let visibility = 'public';
         for (const radio of visibilityRadios) {
@@ -200,7 +200,7 @@ function setupSettingsForm(projectId) {
           body: JSON.stringify({
             name: updatedName,
             description: updatedDescription,
-            visibility: visibilityRadios,
+            visibility: visibility,
           })
         });
         
