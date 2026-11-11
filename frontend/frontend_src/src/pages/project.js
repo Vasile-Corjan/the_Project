@@ -347,6 +347,7 @@ async function  refreshFilesList(projectId){
         const formattedDate = uploadDate.toLocaleDateString();
 
         const fileName = file.filename;
+        const filetype = file.file_type;
 
         row.innerHTML = `
         <td class="file-name">
@@ -358,8 +359,12 @@ async function  refreshFilesList(projectId){
 
         const ifcLink = row.querySelector('.ifc-file-link');
 
-        ifcLink.addEventListener('click', () =>{
-          window.location.href = `/viewer?projectId=${projectId}&fileId=${file.id}&fileName=${encodeURIComponent(fileName)}`;
+        ifcLink.addEventListener('click', async () =>{
+          if (filetype === "ifc") {  
+            window.location.href = `/viewer?projectId=${projectId}&fileId=${file.id}&fileName=${encodeURIComponent(fileName)}`;
+          } else if (filetype === "pdf") {
+            await openPDF(projectId, file.id)
+          }
         })
         
         // Delete button
@@ -384,6 +389,24 @@ async function  refreshFilesList(projectId){
       })
     }
   }
+}
+
+async function openPDF(projectId, fileId) {
+  const response = await authenticatedFetch(`http://localhost:8000/api/projects/${projectId}/files/${fileId}/`)
+
+  if (!response.ok){
+    throw new Error(`Can not open the PDF file:, ${response.status}`)
+  }
+
+  const blob = await response.blob();
+  const blobUrl = URL.createObjectURL(blob);
+  const tab = window.open(blobUrl, "_blank", "noopener");
+
+  if (!tab) {
+    URL.revokeObjectURL(blobUrl)
+    throw new Error("Popup blocked")
+  }
+  setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
 }
 
 // filedid 28 and 27
