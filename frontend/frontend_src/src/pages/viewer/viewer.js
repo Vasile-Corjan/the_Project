@@ -226,32 +226,68 @@ async function loadIfcFromDatabase(projectId, fileId, modelName) {
   return model;
 }
 
-// Function to load IFC file from array buffer
-const handleFileUpload = async () => {
-  const fileOpener = document.createElement('input');
-  fileOpener.type = 'file';
-  fileOpener.accept = '.ifc';
-  fileOpener.onchange = async () => {
-    if(fileOpener.files === null || fileOpener.files.length === 0) return;
-    const file = fileOpener.files[0];
-    const fileName = file.name.replace('.ifc','');
-    fileOpener.remove();
-    const buffer = await file.arrayBuffer();
-    const data = new Uint8Array(buffer);
-    const model = await ifcLoader.load(data, true, fileName);
-    model.name = fileName;
+const loadedModelIds = new Set();
+
+async function toggleFileListMenu(){
+  let modelsMenu = document.getElementById('models-menu');
+    if (modelsMenu) {
+      modelsMenu.remove();
+      return;
+    }
+
+    const bottomMenu = document.querySelector('.bottom-menu');
+    if (!bottomMenu) return
+  
+    modelsMenu = document.createElement('div');
+    modelsMenu.id = 'models-menu';
+    modelsMenu.innerHTML = `
+    <p class="models-list-title">Select IFC model</p>
+    <ul class="models-list"></ul>
+    <button id="import-selected-model" type="button">Import models</button>
+    `;
+    bottomMenu.appendChild(modelsMenu);
+
+  const response = await authenticatedFetch(`http://localhost:8000/api/projects/${projectId}/files/`);
+  if (!response) throw Error(`Failed to load the list, ${response.status}`);
+  
+  const fileList = await response.json()
+  const ifcList = [];
+  for (const file of fileList) {
+    if ((file.file_type).toLowerCase() === 'ifc') {
+      ifcList.push(file);
+    };
   };
-  fileOpener.click();
+
+  const list = document.querySelector(".models-list");
+  if(ifcList.length === 0){
+    list.innerHTML = `<li class="models-empty"> No IFC files found</li>`;
+    return;
+  }
+  list.innerHTML = ifcList.map((f,i) => `
+  <li>
+      <label class="model-option">
+        <span class="ifc-selection" id= "${f.id}">${f.filename}</span>
+      </label>
+  </li>
+    `).join("")
+  
+  document.getElementById("import-selected-model").addEventListener("click", async () => {
+    const selected = modelsMenu.querySelector('span.ifc-selection');
+    if (!selected) return;
+
+    const selectedId = selected.id;
+    if (loadedModelIds.has(selectedId)) return; // avoid duplicate import
+
+    const fileMeta = ifcList.find(f => String(f.id) === String(selectedId));
+    await loadIfcFromDatabase(projectId, selectedId, fileMeta?.filename || `model_${selectedId}`);
+    loadedModelIds.add(selectedId);
+  })
+};
+
+const uploadLink = document.getElementById("uploadlink");
+if (uploadLink) {
+  uploadLink.addEventListener("click", toggleFileListMenu);
 }
-
-document.getElementById("uploadlink").addEventListener('click', handleFileUpload);
-
-fragments.list.onItemSet.add(({value: model}) => {
-  model.graphicsQuality = 1;
-  model.useCamera(world.camera.three);
-  world.scene.three.add(model.object);
-  fragments.core.update(true);
-});
 
 // Load the model from the database if we have a project ID and file ID
 if (projectId && fileId) {
@@ -270,6 +306,7 @@ if (projectId && fileIdsParam) {
     }
   })();
 }
+
 // Initialize UI panels
 initializePanels(components, fragments);
 
@@ -289,7 +326,7 @@ async function getBaseElevation(model) {
   const storeys = await model.getItemsOfCategories([/BUILDINGSTOREY/]);
   const localIds = Object.values(storeys).flat();
   const data = await  model.getItemsData(localIds);
-  console.log(data)
+
   const storey = data.find((attributes) => {
     if(!("Name" in attributes && "value" in attributes.Name)) return false;
     return attributes.Name.value;

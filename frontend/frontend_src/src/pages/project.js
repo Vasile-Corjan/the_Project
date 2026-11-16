@@ -17,7 +17,7 @@ export async function Project() {
       settingsTab();
       initializeUserDropdown();
       uploadFile();
-      //federatedModel();
+      federatedModel();
       
       const projectData = await loadProjectData(projectId);
       updateProjectDescription(projectData.name, projectData.description);
@@ -356,7 +356,7 @@ async function  refreshFilesList(projectId){
         <td class="change-time">'N/A'</td>
         <td class="update-time">${formattedDate}</td>
         `;
-
+        // TODO: Maybe there is a better solution
         const ifcLink = row.querySelector('.ifc-file-link');
 
         ifcLink.addEventListener('click', async () =>{
@@ -409,18 +409,19 @@ async function openPDF(projectId, fileId) {
   setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
 }
 
-// filedid 28 and 27
-/* function federatedModel(){
+
+function federatedModel(){
+  
   const goToViewerBtn = document.querySelector('.go-to-viewer');
   const urlParams = new URLSearchParams(window.location.search);
   const projectId = urlParams.get('id');
 
   if(goToViewerBtn){
     goToViewerBtn.addEventListener('click', () => {
-      window.location.href = `/viewer?projectId=${projectId}&fileId=28`;
+      window.location.href = `/viewer?projectId=${projectId}`;
     });
   }
-} */
+}
 
 export default Project;
 

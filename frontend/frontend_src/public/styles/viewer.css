@@ -332,12 +332,7 @@ hr {
   right: 10px;
 }
 
-input {
-  z-index: 1000;
-  position: fixed;
-  top: 20px;
-  right: 0;
-}
+
 .bottom-menu{
   position: fixed;
   bottom: 5%;
@@ -431,7 +426,68 @@ li > button {
   z-index: 20;
   flex-direction: column;
 }
+#models-menu {
+  position: absolute;
+  bottom: calc(100% + 5px);
+  right: 115px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px;
+  background: rgba(0, 0, 0, 0.9);
+  border: 1px solid #2f2f2f;
+  border-radius: 10px;
+  z-index: 20;
+}
 
+.models-list-title {
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.models-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.model-option {
+  display: flex;
+  align-items: center;
+  color: #ddd;
+  padding: 6px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.model-option:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+#import-selected-model {
+  border: none;
+  border-radius: 6px;
+  padding: 8px 10px;
+  background: #4f46e5;
+  color: #fff;
+  cursor: pointer;
+}
+
+.models-empty,
+.models-error {
+  color: #bdbdbd;
+  font-size: 12px;
+}
+
+#models-menu span {
+  color:#ddd;
+  font-size: 14px;
+  justify-content: left;
+}
 
 
 #clip-menu button, #dim-menu button{
