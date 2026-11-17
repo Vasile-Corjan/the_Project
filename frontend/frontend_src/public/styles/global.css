@@ -1,3 +1,55 @@
+:root {
+    --color-primary: #007bff;
+    --color-primary-hover: #0056b3;
+    --color-text: #171321;
+    --color-text-dark: #24292f;
+    --color-muted: #57606a;
+    --color-border: #d0d7de;
+    --color-border-light: #e1e4e8;
+    --color-background: #f6f8fa;
+    --color-background-alt: #d0d7de;
+    --color-surface: #ffffff;
+    --color-sidebar: #2d333b;
+    --color-sidebar-text: #c9d1d9;
+    --color-nordic: #4c566a;
+    --color-danger: #d73a49;
+
+    --header-height: 60px;
+    --viewer-header-height: 48px;
+    --sidebar-width: 256px;
+    --feed-sidebar: 256px;
+
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-5: 20px;
+    --space-6: 24px;
+    --space-8: 32px;
+
+    --radius-1: 4px;
+    --radius-2: 6px;
+    --radius-3: 8px;
+    --radius-4: 12px;
+    --radius-5: 20px;
+
+    --shadow-card: 0 2px 5px rgba(0, 0, 0, 0.1);
+    --shadow-dropdown: 0 8px 24px rgba(140, 149, 159, 0.2);
+    --shadow-panel: 0 5px 15px rgba(0, 0, 0, 0.2);
+
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+}
+
 body {
     width: 100%;
     min-height: 100vh;
@@ -6,9 +58,7 @@ body {
     font-size: 16px;
     font-weight: 400;
     line-height: 24px;
-    background-image: linear-gradient(45deg, #FFFFFF 25%, #474788 60%, #1f3c38 80%);
-    background-repeat: no-repeat;
+    background: linear-gradient(45deg, #fff 25%, #474788 60%, #1f3c38 80%) no-repeat;
     background-size: cover;
-    background-attachment: fixed;
     overflow-x: hidden;
 }

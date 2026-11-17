@@ -1,12 +1,3 @@
-/* ===========================
-   RESET & BASE STYLES
-   =========================== */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
 .home-page img,
 .home-page svg {
     max-width: 100%;
@@ -14,16 +5,13 @@
     vertical-align: middle;
 }
 
-/* ===========================
-   HEADER
-   =========================== */
 .home-page_header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 12.5px 20px;
     color: black;
-    background-color: white;
+    background-color: var(--color-surface);
     position: relative;
     z-index: 100;
 }
@@ -85,9 +73,6 @@
     transform: translateY(-1px);
 }
 
-/* ===========================
-   HERO GALLERY SECTION
-   =========================== */
 .home-page_gallery {
     display: flex;
     flex-wrap: wrap;
@@ -129,7 +114,8 @@
     flex: 1 1 300px;
     height: 300px;
     margin-bottom: 20px;
-    transition: transform 0.3s ease;
+    will-change: transform;
+    transition: transform 0.2s ease;
 }
 
 .home-page_gallery-card:hover {
@@ -137,9 +123,6 @@
     transform: translateY(-10px);
 }
 
-/* ===========================
-   FEATURES GRID SECTION
-   =========================== */
 .home-page_features {
     display: flex;
     justify-content: center;
@@ -191,11 +174,8 @@
     color: royalblue;
 }
 
-/* ===========================
-   CTA SECTION
-   =========================== */
 .home-page_cta {
-    background: #171321;
+    background: var(--color-text);
     padding: 64px 20px 32px;
     color: white;
     position: relative;
@@ -215,7 +195,7 @@
     flex-direction: row;
     padding: 64px;
     justify-content: space-around;
-    background: #171321;
+    background: var(--color-text);
     border: 1px solid #45424d;
     border-radius: 12px;
     margin-top: -96px;
@@ -247,9 +227,6 @@
     line-height: 24px;
 }
 
-/* ===========================
-   FOOTER
-   =========================== */
 .home-page_footer {
     display: flex;
     width: 100%;
@@ -257,10 +234,10 @@
     justify-content: space-between;
     align-items: center;
     padding: 1rem 20px;
-    background: #171321;
-    color: #FFFFFF;
+    background: var(--color-text);
+    color: --color-surface;
     border-top: 1.5px solid transparent;
-    background-image: linear-gradient(to right, transparent, #FFFFFF, transparent);
+    background-image: linear-gradient(to right, transparent, --color-surface, transparent);
     background-size: 100% 1.5px;
     background-repeat: no-repeat;
     background-position: top;
@@ -291,9 +268,6 @@
     opacity: 0.7;
 }
 
-/* ===========================
-   RESPONSIVE DESIGN
-   =========================== */
 @media (max-width: 1024px) {
     .home-page_gallery {
         flex-wrap: wrap;
@@ -401,5 +375,14 @@
 
     .home-page_footer {
         padding: 20px 15px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .home-page_gallery-card,
+    .home-page_footer-left svg,
+    .home-page_action-buttons .home-page_sign-up {
+        transition: none;
+        transform: none;
     }
 }

@@ -1,16 +1,14 @@
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
 body {
   font-family: Arial, sans-serif;
   margin: 0;
   height: 100vh;
-  display: grid;
-  grid-template-columns: 250px 1fr; /* 250px for the side panel, the rest for the viewer */
-  grid-template-rows: 1fr;
+  height: 100svh;
   overflow: hidden;
+}
+
+#app {
+  width: 100%;
+  height: 100%;
 }
 .appHeader {
   position: fixed;
@@ -18,13 +16,13 @@ body {
   left: 0;
   right: 0;
   background-color: #333;
-  color: white;
+  color: var(--color-surface);
   padding: 0 16px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 48px;
+  height: var(--viewer-header-height);
   z-index: 100;
 }
 
@@ -54,7 +52,7 @@ body {
 }
 
 .breadcrumb-item {
-  color: #fff;
+  color: var(--color-surface);
   text-decoration: none;
   font-size: 14px;
   font-weight: 500;
@@ -80,10 +78,14 @@ body {
 /* Fix container for proper header positioning */
 #container {
   outline: none;
-  width: 100vw;
-  height: calc(100vh - 48px); /* Subtract header height */
-  margin-top: 48px; /* Add margin equal to header height */
-
+  position: fixed;
+  top: var(--viewer-header-height);
+  right: 0;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: calc(100vh - var(--viewer-header-height));
+  height: calc(100svh - var(--viewer-header-height));
 }
 .side-nav {
   display: flex;
@@ -105,7 +107,7 @@ body {
 .nav-menu button{
   width: 40px;
   height: 40px;
-  background-color: whitesmoke;
+  background-color: #f5f5f5;
   border-radius: 6px;
   margin-top: 10px;
   cursor: pointer;
@@ -113,7 +115,7 @@ body {
 }
 
 .data-panel {
-  display: absolute;
+  display: block;
   top: 0;
   left: 100%;
   background-color: whitesmoke;
@@ -121,7 +123,6 @@ body {
   border-radius: 6px;
   padding: 10px;
   width: 364px;
-  height: 136px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
   z-index: 101;
   margin-left: 10px;
@@ -130,6 +131,8 @@ body {
   overflow-y: auto;
   transform: translate(-10px);
   transition: opacity 0.3s ease, transform 0.3s ease;
+  opacity: 0;
+  pointer-events: none;
 }
 
 .data-panel > p:first-child {
@@ -196,18 +199,16 @@ body {
   border-left: 3px solid #3f3f3f;
 }
 
-.data-panel {
-  opacity: 0;
-  transform: translateX(-10px);
-}
+
 
 .data-panel.visible {
   opacity: 1;
+  pointer-events: auto;
   transform: translateX(0);
 }
 
 .tree-panel{
-  display: absolute;
+  display: block;
   top: 0;
   left: 100%;
   background-color: whitesmoke;
@@ -379,28 +380,6 @@ li > button {
   display: none;
 }
 
-#perspective-view{
-  right: 0px;
-}
-
-#ortho-view{
-  right: 0px;
-  top: 20px;
-}
-
-#fit{
-  right: 0px;
-  top: 40px;
-}
-#dim{
-  right: 0px;
-  top: 60px;
-}
-#clip{
-  right: 0px;
-  top: 80px;
-}
-
 #clip-menu{
   position: absolute;
   bottom: calc(100% + 5px);
@@ -441,7 +420,7 @@ li > button {
 }
 
 .models-list-title {
-  color: #fff;
+  color: var(--color-surface);
   font-size: 15px;
   font-weight: 600;
 }
@@ -473,7 +452,7 @@ li > button {
   border-radius: 6px;
   padding: 8px 10px;
   background: #4f46e5;
-  color: #fff;
+  color: var(--color-surface);
   cursor: pointer;
 }
 
@@ -508,4 +487,13 @@ li > button {
   padding: 0 0.25rem;
   color: white;
   border-radius: 0.25rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .breadcrumb-item,
+  .data-panel,
+  .icon-container button,
+  .model-option {
+    transition: none;
+  }
 }

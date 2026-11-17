@@ -103,12 +103,12 @@ container.addEventListener("resize", () => {
 });
 
 const cameraProjection = new OBC.ProjectionManager(world.camera);
-const perspectiveButton = document.getElementById("perspective-view");
-const orthographicButton = document.getElementById("ortho-view");
-const fitButton = document.getElementById("fit");
+//const perspectiveButton = document.getElementById("perspective-view");
+//const orthographicButton = document.getElementById("ortho-view");
+//const fitButton = document.getElementById("fit");
 
 
-perspectiveButton.addEventListener("click", () => {
+/* perspectiveButton.addEventListener("click", () => {
   const selected = "Perspective";
   world.camera.projection.set(selected);
 });
@@ -127,7 +127,7 @@ fitButton.addEventListener("click", () => {
   if (loadedModels.length > 0) {
     world.camera.fit(loadedModels, 0.5);
   }
-});
+}); */
 
 // Changing the background color
 const color = new THREE.Color(0x3f3f3f);

@@ -1,15 +1,7 @@
-/* ===========================
-   RESET & BASE STYLES
-   =========================== */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
 
 body.signin-page {
     font-family: Arial, sans-serif;
-    background-color: #f6f8fa;
+    background-color: var(--color-background);
     min-height: 100vh;
     display: flex;
     justify-content: center;
@@ -17,18 +9,15 @@ body.signin-page {
     overflow-x: hidden;
 }
 
-/* ===========================
-   SIGNIN FORM
-   =========================== */
 .signin-page_form {
     display: flex;
     flex-direction: column;
     gap: 10px;
     max-width: 350px;
     width: 100%;
-    background-color: #fff;
+    background-color: var(--color-surface);
     padding: 50px;
-    border-radius: 20px;
+    border-radius: var(--radius-5);
     position: relative;
     margin: auto;
     margin-top: 169px;
@@ -139,9 +128,9 @@ body.signin-page {
     outline: none;
     padding: 10px;
     border-radius: 10px;
-    color: #fff;
+    color: var(--color-surface);
     font-size: 16px;
-    transform: .3s ease;
+    transition: background-color 0.2s ease;
     background-color: royalblue;
     cursor: pointer;
 }
@@ -162,9 +151,6 @@ body.signin-page {
     }
 }
 
-/* ===========================
-   RESPONSIVE DESIGN
-   =========================== */
 @media (max-width: 480px) {
     .signin-page_form {
         padding: 30px 20px;
@@ -173,5 +159,15 @@ body.signin-page {
 
     .signin-page_title {
         font-size: 24px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .signin-page_title::after,
+    .signin-page_input,
+    .signin-page_input + span,
+    .signin-page_submit {
+        animation: none;
+        transition: none;
     }
 }
